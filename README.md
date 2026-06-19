@@ -101,6 +101,7 @@ $context = new PluginContext(
 Before adding implementations in another Codex or Claude chat, read:
 
 - `AGENTS.md`
+- `HEXA_PLUGIN_CORE_LIBRARY.md`
 - `docs/folder-map.md`
 - `docs/setup-protocol.md`
 - `docs/implementation-checklist.md`

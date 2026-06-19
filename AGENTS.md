@@ -82,7 +82,8 @@ Minimum documentation for a new implementation:
 - example usage
 - testing method
 
+Also update `HEXA_PLUGIN_CORE_LIBRARY.md` whenever a public namespace, class, setup protocol, or host integration pattern changes. That file is intended to be copied into every plugin that consumes the core.
+
 ## Commit Hygiene
 
 Do not create backup files. Do not commit generated vendor files unless explicitly requested. Keep implementation and docs in the same commit when they define a new public pattern.
-

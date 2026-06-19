@@ -45,6 +45,7 @@ Namespace docs:
 - `docs/bootstrap.md`
 - `docs/contracts.md`
 - `docs/host-plugin-adapter-template.md`
+- `HEXA_PLUGIN_CORE_LIBRARY.md`
 - `docs/shortcodes.md`
 - `docs/support.md`
 - `docs/tabs.md`
