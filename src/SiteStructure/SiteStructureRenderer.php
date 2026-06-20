@@ -22,7 +22,11 @@ final class SiteStructureRenderer {
                 'card_class'            => 'hpc-card',
                 'table_class'           => 'hpc-table',
                 'enable_templates'      => false,
+                'enable_template_editors' => false,
+                'template_editor_media_buttons' => false,
+                'template_editor_rows' => 8,
                 'apply_template_action' => '',
+                'show_page_details' => false,
                 'actions'               => [],
                 'labels'                => [],
             ],
@@ -109,7 +113,7 @@ final class SiteStructureRenderer {
     private function render_page_row( string $page_key, array $page_data, array $all_pages, ?string $parent_key = null, bool $top_level = false ): string {
         $page_id = $this->manager->assigned_page_id( $page_key );
         $page    = $page_id > 0 && function_exists( 'get_post' ) ? get_post( $page_id ) : null;
-        $is_set  = $page instanceof \WP_Post && 'publish' === $page->post_status;
+        $is_set  = $this->manager->is_assigned_page_set( $page_key );
         $title   = (string) ( $page_data['title'] ?? $page_key );
         $slug    = (string) ( $page_data['slug'] ?? $page_key );
 
@@ -138,9 +142,75 @@ final class SiteStructureRenderer {
             <td class="hpc-site-page-status"><?php echo $this->status_badge( $is_set, $is_set ? 'Set' : 'Not Set' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
             <td class="hpc-site-page-actions"><?php echo $this->page_actions( $page_id, $page_key, $is_set, $page_data, $parent_key ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
         </tr>
+        <?php echo $this->render_page_detail_row( $page_key, $page_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+        <?php echo $this->render_template_row( $page_key, $page_data ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         <?php foreach ( (array) ( $page_data['children'] ?? [] ) as $child_key => $child_data ) : ?>
             <?php echo $this->render_page_row( (string) $child_key, is_array( $child_data ) ? $child_data : [], $all_pages, $page_key, false ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
         <?php endforeach; ?>
+        <?php
+
+        return (string) ob_get_clean();
+    }
+
+    private function render_page_detail_row( string $page_key, int $page_id ): string {
+        if ( empty( $this->config['show_page_details'] ) ) {
+            return '';
+        }
+
+        $detail_html = '';
+        if ( $page_id > 0 ) {
+            $payload = $this->manager->page_payload( $page_id );
+            $detail_html = (string) ( $payload['detail_html'] ?? '' );
+        }
+
+        ob_start();
+        ?>
+        <tr class="hpc-site-page-detail-row" data-page-key="<?php echo esc_attr( $page_key ); ?>" style="<?php echo '' === $detail_html ? 'display:none;' : ''; ?>">
+            <td colspan="4" style="padding:0 16px 16px;">
+                <div class="hpc-page-detail-wrap" aria-live="polite"><?php echo $detail_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+            </td>
+        </tr>
+        <?php
+
+        return (string) ob_get_clean();
+    }
+
+    /**
+     * @param array<string,mixed> $page_data
+     */
+    private function render_template_row( string $page_key, array $page_data ): string {
+        if ( empty( $this->config['enable_templates'] ) || empty( $this->config['enable_template_editors'] ) || empty( $page_data['template'] ) ) {
+            return '';
+        }
+
+        $raw_editor_id = sanitize_key( (string) $this->config['instance_id'] . '_' . $page_key . '_template' );
+        $editor_id = preg_replace( '/[^a-z0-9_]/', '_', $raw_editor_id ) ?: 'hpc_page_template';
+        $template = $this->manager->template_content( $page_key );
+        $rows = max( 4, (int) $this->config['template_editor_rows'] );
+
+        ob_start();
+        ?>
+        <tr class="hpc-site-template-row" data-page-key="<?php echo esc_attr( $page_key ); ?>">
+            <td colspan="4" style="padding:0 16px 16px;">
+                <details class="hpc-template-panel" style="border:1px solid #e5e7eb;border-radius:8px;background:#fff;margin:0;">
+                    <summary style="cursor:pointer;padding:12px 14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                        <span>Starter/template text</span>
+                        <small style="color:#64748b;font-weight:500;">Saved template is used when creating or applying this page.</small>
+                    </summary>
+                    <div class="hpc-template-editor" data-editor-id="<?php echo esc_attr( $editor_id ); ?>" style="border-top:1px solid #e5e7eb;padding:14px;">
+                        <?php if ( function_exists( 'wp_editor' ) ) : ?>
+                            <?php wp_editor( $template, $editor_id, [ 'textarea_name' => $editor_id, 'textarea_rows' => $rows, 'media_buttons' => ! empty( $this->config['template_editor_media_buttons'] ), 'teeny' => false, 'quicktags' => true, 'tinymce' => true ] ); ?>
+                        <?php else : ?>
+                            <textarea id="<?php echo esc_attr( $editor_id ); ?>" rows="<?php echo esc_attr( (string) $rows ); ?>" style="width:100%;"><?php echo esc_textarea( $template ); ?></textarea>
+                        <?php endif; ?>
+                        <p style="display:flex;align-items:center;gap:8px;margin:12px 0 0;">
+                            <button type="button" class="button button-secondary hpc-save-page-template" data-page-key="<?php echo esc_attr( $page_key ); ?>">Save Template</button>
+                            <span class="hpc-template-status" style="font-size:13px;color:#64748b;"></span>
+                        </p>
+                    </div>
+                </details>
+            </td>
+        </tr>
         <?php
 
         return (string) ob_get_clean();
@@ -154,7 +224,8 @@ final class SiteStructureRenderer {
             $html = '<a href="' . esc_url( get_edit_post_link( $page_id ) ) . '" target="_blank" rel="noopener" class="button button-small">Edit</a> ';
             $html .= '<a href="' . esc_url( get_permalink( $page_id ) ) . '" target="_blank" rel="noopener" class="button button-small">View</a> ';
 
-            if ( ! empty( $this->config['enable_templates'] ) ) {
+            $actions = is_array( $this->config['actions'] ) ? $this->config['actions'] : [];
+            if ( ! empty( $this->config['enable_templates'] ) && ( ! empty( $this->config['apply_template_action'] ) || ! empty( $actions['apply_template'] ) ) ) {
                 $html .= '<button type="button" class="button button-small hpc-apply-page-template" data-page-id="' . esc_attr( (string) $page_id ) . '" data-page-key="' . esc_attr( $page_key ) . '">Apply Template</button> ';
             }
 
@@ -219,6 +290,48 @@ final class SiteStructureRenderer {
                 </label>
                 <button type="button" class="button button-primary hpc-create-navigation-menu">Create Menu</button>
                 <span class="hpc-create-menu-status" style="grid-column:1 / -1;font-size:13px;color:#666;"></span>
+            </div>
+
+            <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:18px;background:#fff;">
+                <h4 style="margin:0 0 10px;font-size:15px;">Create Menu Item</h4>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;align-items:end;">
+                    <label>
+                        <span style="display:block;font-weight:600;margin-bottom:4px;">Menu</span>
+                        <select class="hpc-custom-item-menu" style="width:100%;" <?php disabled( empty( $nav_menus ) ); ?>>
+                            <?php echo $this->menu_options( $nav_menus, 0 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </select>
+                    </label>
+                    <label>
+                        <span style="display:block;font-weight:600;margin-bottom:4px;">Parent item</span>
+                        <select class="hpc-custom-item-parent" style="width:100%;" <?php disabled( empty( $nav_menus ) ); ?>>
+                            <?php echo $this->menu_item_options( $inventory ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </select>
+                    </label>
+                    <label>
+                        <span style="display:block;font-weight:600;margin-bottom:4px;">Item label</span>
+                        <input type="text" class="regular-text hpc-custom-item-title" placeholder="Advertise" style="width:100%;max-width:none;" <?php disabled( empty( $nav_menus ) ); ?>>
+                    </label>
+                    <label>
+                        <span style="display:block;font-weight:600;margin-bottom:4px;">URL</span>
+                        <input type="text" class="regular-text hpc-custom-item-url" placeholder="/advertise/ or https://example.com" style="width:100%;max-width:none;" <?php disabled( empty( $nav_menus ) ); ?>>
+                    </label>
+                    <button type="button" class="button button-primary hpc-create-menu-item" <?php disabled( empty( $nav_menus ) ); ?>>Create Menu Item</button>
+                </div>
+                <span class="hpc-create-menu-item-status" style="display:block;margin-top:8px;font-size:13px;color:#666;"></span>
+            </div>
+
+            <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:18px;background:#fff;">
+                <h4 style="margin:0 0 10px;font-size:15px;">Add Assigned Pages To Menu</h4>
+                <div style="display:grid;grid-template-columns:minmax(240px,360px) auto;gap:10px;align-items:end;max-width:620px;">
+                    <label>
+                        <span style="display:block;font-weight:600;margin-bottom:4px;">Menu</span>
+                        <select class="hpc-add-pages-menu" style="width:100%;" <?php disabled( empty( $nav_menus ) ); ?>>
+                            <?php echo $this->menu_options( $nav_menus, 0 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        </select>
+                    </label>
+                    <button type="button" class="button button-secondary hpc-add-pages-to-menu" <?php disabled( empty( $nav_menus ) ); ?>>Add All Assigned Pages</button>
+                </div>
+                <span class="hpc-add-pages-status" style="display:block;margin-top:8px;font-size:13px;color:#666;"></span>
             </div>
 
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px;">
@@ -378,9 +491,14 @@ final class SiteStructureRenderer {
                 'delete_page'              => '',
                 'create_navigation_menu'   => '',
                 'delete_navigation_menu'   => '',
+                'create_menu_item'         => '',
                 'attach_page_to_menu_item' => '',
                 'attach_menu_structure'    => '',
                 'add_pages_to_menu'        => '',
+                'save_template'            => '',
+                'apply_template'           => '',
+                'page_details'             => '',
+                'update_page_slug'         => '',
             ],
             is_array( $this->config['actions'] ) ? $this->config['actions'] : []
         );
@@ -426,6 +544,11 @@ final class SiteStructureRenderer {
 
             function post(actionName, data, done, fail) {
                 data = data || {};
+                if (!cfg.actions[actionName]) {
+                    toast("Action is not configured: " + actionName, "error");
+                    if (typeof fail === "function") fail();
+                    return;
+                }
                 data.action = cfg.actions[actionName];
                 data.nonce = cfg.nonce;
                 $.post(ajaxurl, data, done).fail(fail || function() {
@@ -436,7 +559,7 @@ final class SiteStructureRenderer {
             function actionButtons(pageKey, pageId, editUrl, viewUrl) {
                 var html = '<a href="' + editUrl + '" target="_blank" rel="noopener" class="button button-small">Edit</a> ';
                 html += '<a href="' + viewUrl + '" target="_blank" rel="noopener" class="button button-small">View</a> ';
-                if (cfg.enableTemplates && cfg.applyTemplateAction) {
+                if (cfg.enableTemplates && (cfg.actions.apply_template || cfg.applyTemplateAction)) {
                     html += '<button type="button" class="button button-small hpc-apply-page-template" data-page-id="' + pageId + '" data-page-key="' + pageKey + '">Apply Template</button> ';
                 }
                 html += '<button type="button" class="button button-small hpc-delete-page" data-page="' + pageKey + '" data-page-id="' + pageId + '" style="color:#dc2626;border-color:#fca5a5;">Delete</button>';
@@ -469,6 +592,36 @@ final class SiteStructureRenderer {
                 $el.text(text).css("color", success ? "#059669" : "#dc2626");
             }
 
+            function editorContent(editorId) {
+                if (window.tinyMCE && window.tinyMCE.get(editorId)) {
+                    return window.tinyMCE.get(editorId).getContent();
+                }
+
+                return $("#" + editorId).val() || "";
+            }
+
+            function detailRow($row) {
+                return $row.nextAll(".hpc-site-page-detail-row").first();
+            }
+
+            function setPageDetail($row, html) {
+                var $detail = detailRow($row);
+                if (!$detail.length) return;
+                html = html || "";
+                $detail.find(".hpc-page-detail-wrap").html(html);
+                if (html) {
+                    $detail.show();
+                } else {
+                    $detail.hide();
+                }
+            }
+
+            function updatePageSelectLabel($row, pageId, title) {
+                var $select = $row.find(".hpc-site-page-select");
+                var $option = $select.find('option[value="' + pageId + '"]');
+                if ($option.length && title) $option.text(title);
+            }
+
             $root.find(".hpc-structure-menu").each(function() {
                 var $card = $(this).closest(".hpc-menu-structure-card");
                 filterParentItems($card.find(".hpc-structure-parent"), $(this).val());
@@ -476,6 +629,10 @@ final class SiteStructureRenderer {
 
             $root.find(".hpc-attach-menu").on("change", function() {
                 filterParentItems($root.find(".hpc-attach-parent-item"), $(this).val());
+            }).trigger("change");
+
+            $root.find(".hpc-custom-item-menu").on("change", function() {
+                filterParentItems($root.find(".hpc-custom-item-parent"), $(this).val());
             }).trigger("change");
 
             $root.on("change", ".hpc-structure-menu", function() {
@@ -501,9 +658,11 @@ final class SiteStructureRenderer {
                             var viewUrl = data.permalink || "#";
                             $row.find(".hpc-site-page-status").html(statusBadge(true, "Set"));
                             $row.find(".hpc-site-page-actions").html(actionButtons($select.data("page"), pageId, editUrl, viewUrl));
+                            setPageDetail($row, data.detail_html || "");
                         } else {
                             $row.find(".hpc-site-page-status").html(statusBadge(false, "Not Set"));
                             $row.find(".hpc-site-page-actions").html(createButton($row));
+                            setPageDetail($row, "");
                         }
                         toast("Page assignment saved.", "success");
                     } else {
@@ -539,6 +698,7 @@ final class SiteStructureRenderer {
                         $select.val(pageId);
                         $row.find(".hpc-site-page-status").html(statusBadge(true, "Set"));
                         $row.find(".hpc-site-page-actions").html(actionButtons(pageKey, pageId, editUrl, viewUrl));
+                        setPageDetail($row, data.detail_html || "");
                         toast("Page created: " + (data.title || title), "success");
                     } else {
                         toast(message(response, "Failed to create page."), "error");
@@ -563,6 +723,7 @@ final class SiteStructureRenderer {
                         $row.find(".hpc-site-page-select").val("");
                         $row.find(".hpc-site-page-status").html(statusBadge(false, "Not Set"));
                         $row.find(".hpc-site-page-actions").html(createButton($row));
+                        setPageDetail($row, "");
                         toast(message(response, "Page deleted or unassigned."), "success");
                     } else {
                         toast(message(response, "Failed to delete page."), "error");
@@ -612,6 +773,59 @@ final class SiteStructureRenderer {
                 }, function() {
                     toast("Menu deletion request failed.", "error");
                     $btn.prop("disabled", false).text("Delete");
+                });
+            });
+
+            $root.on("click", ".hpc-create-menu-item", function() {
+                var $btn = $(this);
+                var $status = $root.find(".hpc-create-menu-item-status");
+                var menuId = $root.find(".hpc-custom-item-menu").val();
+                var title = $root.find(".hpc-custom-item-title").val();
+                var url = $root.find(".hpc-custom-item-url").val();
+                if (!menuId || !title || !url) {
+                    setStatus($status, "Select a menu, label, and URL.", false);
+                    return;
+                }
+                $btn.prop("disabled", true).text("Creating...");
+                post("create_menu_item", {
+                    menu_id: menuId,
+                    parent_item_id: $root.find(".hpc-custom-item-parent").val() || "0",
+                    title: title,
+                    url: url
+                }, function(response) {
+                    if (response.success) {
+                        setStatus($status, message(response, "Menu item created."), true);
+                        setTimeout(function() { location.reload(); }, 900);
+                    } else {
+                        setStatus($status, message(response, "Menu item creation failed."), false);
+                        $btn.prop("disabled", false).text("Create Menu Item");
+                    }
+                }, function() {
+                    setStatus($status, "Menu item creation request failed.", false);
+                    $btn.prop("disabled", false).text("Create Menu Item");
+                });
+            });
+
+            $root.on("click", ".hpc-add-pages-to-menu", function() {
+                var $btn = $(this);
+                var $status = $root.find(".hpc-add-pages-status");
+                var menuId = $root.find(".hpc-add-pages-menu").val();
+                if (!menuId) {
+                    setStatus($status, "Select a menu first.", false);
+                    return;
+                }
+                $btn.prop("disabled", true).text("Adding...");
+                post("add_pages_to_menu", { menu_id: menuId }, function(response) {
+                    if (response.success) {
+                        setStatus($status, message(response, "Assigned pages added."), true);
+                        setTimeout(function() { location.reload(); }, 900);
+                    } else {
+                        setStatus($status, message(response, "Add pages failed."), false);
+                        $btn.prop("disabled", false).text("Add All Assigned Pages");
+                    }
+                }, function() {
+                    setStatus($status, "Add pages request failed.", false);
+                    $btn.prop("disabled", false).text("Add All Assigned Pages");
                 });
             });
 
@@ -671,9 +885,32 @@ final class SiteStructureRenderer {
                 });
             });
 
+            $root.on("click", ".hpc-save-page-template", function() {
+                var $btn = $(this);
+                var $wrap = $btn.closest(".hpc-template-editor");
+                var $status = $wrap.find(".hpc-template-status");
+                var editorId = $wrap.data("editor-id");
+                $btn.prop("disabled", true).text("Saving...");
+                setStatus($status, "Saving template...", true);
+                post("save_template", {
+                    page_key: $btn.data("page-key"),
+                    template: editorContent(editorId)
+                }, function(response) {
+                    if (response.success) {
+                        setStatus($status, message(response, "Template saved."), true);
+                    } else {
+                        setStatus($status, message(response, "Template save failed."), false);
+                    }
+                    $btn.prop("disabled", false).text("Save Template");
+                }, function() {
+                    setStatus($status, "Template save request failed.", false);
+                    $btn.prop("disabled", false).text("Save Template");
+                });
+            });
+
             $root.on("click", ".hpc-apply-page-template", function(e) {
                 e.preventDefault();
-                if (!cfg.enableTemplates || !cfg.applyTemplateAction) return;
+                if (!cfg.enableTemplates || (!cfg.actions.apply_template && !cfg.applyTemplateAction)) return;
                 var $btn = $(this);
                 var pageId = $btn.data("page-id");
                 var pageKey = $btn.data("page-key");
@@ -682,8 +919,9 @@ final class SiteStructureRenderer {
             });
 
             function postTemplate(pageId, pageKey, force, $btn) {
+                var action = cfg.actions.apply_template || cfg.applyTemplateAction;
                 $.post(ajaxurl, {
-                    action: cfg.applyTemplateAction,
+                    action: action,
                     nonce: cfg.nonce,
                     page_id: pageId,
                     page_key: pageKey,
@@ -707,6 +945,35 @@ final class SiteStructureRenderer {
                     $btn.prop("disabled", false).text("Apply Template");
                 });
             }
+
+            $root.on("click", ".hpc-save-page-slug", function() {
+                var $btn = $(this);
+                var $detail = $btn.closest(".hpc-page-detail");
+                var $detailRow = $btn.closest(".hpc-site-page-detail-row");
+                var $row = $detailRow.prevAll(".hpc-site-page-row").first();
+                var $status = $detail.find(".hpc-page-slug-status");
+                var pageId = $detail.data("page-id") || $btn.data("page-id");
+                var slug = $detail.find(".hpc-page-slug-input").val();
+                $btn.prop("disabled", true).text("Saving...");
+                post("update_page_slug", {
+                    page_key: $row.data("page-key"),
+                    page_id: pageId,
+                    slug: slug
+                }, function(response) {
+                    if (response.success) {
+                        var data = response.data || {};
+                        setPageDetail($row, data.detail_html || "");
+                        updatePageSelectLabel($row, pageId, data.title || "");
+                        toast(message(response, "Slug updated."), "success");
+                    } else {
+                        setStatus($status, message(response, "Slug update failed."), false);
+                        $btn.prop("disabled", false).text("Save Slug");
+                    }
+                }, function() {
+                    setStatus($status, "Slug update request failed.", false);
+                    $btn.prop("disabled", false).text("Save Slug");
+                });
+            });
         });
         </script>
         <?php

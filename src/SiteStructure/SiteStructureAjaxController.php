@@ -38,9 +38,14 @@ final class SiteStructureAjaxController {
                 'delete_page'              => '',
                 'create_navigation_menu'   => '',
                 'delete_navigation_menu'   => '',
+                'create_menu_item'         => '',
                 'attach_page_to_menu_item' => '',
                 'attach_menu_structure'    => '',
                 'add_pages_to_menu'        => '',
+                'save_template'            => '',
+                'apply_template'           => '',
+                'page_details'             => '',
+                'update_page_slug'         => '',
             ],
             is_array( $this->config['actions'] ) ? $this->config['actions'] : []
         );
@@ -115,6 +120,18 @@ final class SiteStructureAjaxController {
             ];
         }
 
+        if ( '' !== (string) $actions['create_menu_item'] ) {
+            $map['create_menu_item'] = [
+                'action'   => (string) $actions['create_menu_item'],
+                'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->create_custom_menu_item(
+                    $request->int( 'menu_id' ),
+                    $request->text( 'title' ),
+                    $request->text( 'url' ),
+                    $request->int( 'parent_item_id' )
+                ),
+            ];
+        }
+
         if ( '' !== (string) $actions['attach_page_to_menu_item'] ) {
             $map['attach_page_to_menu_item'] = [
                 'action'   => (string) $actions['attach_page_to_menu_item'],
@@ -142,6 +159,47 @@ final class SiteStructureAjaxController {
                 'action'   => (string) $actions['add_pages_to_menu'],
                 'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->add_all_pages_to_menu(
                     $request->int( 'menu_id' )
+                ),
+            ];
+        }
+
+        if ( '' !== (string) $actions['save_template'] ) {
+            $map['save_template'] = [
+                'action'   => (string) $actions['save_template'],
+                'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->save_template(
+                    $request->key( 'page_key' ),
+                    $request->html( 'template' )
+                ),
+            ];
+        }
+
+        if ( '' !== (string) $actions['apply_template'] ) {
+            $map['apply_template'] = [
+                'action'   => (string) $actions['apply_template'],
+                'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->apply_template(
+                    $request->key( 'page_key' ),
+                    $request->int( 'page_id' ),
+                    $request->bool( 'force' )
+                ),
+            ];
+        }
+
+        if ( '' !== (string) $actions['page_details'] ) {
+            $map['page_details'] = [
+                'action'   => (string) $actions['page_details'],
+                'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->page_payload(
+                    $request->int( 'page_id' )
+                ),
+            ];
+        }
+
+        if ( '' !== (string) $actions['update_page_slug'] ) {
+            $map['update_page_slug'] = [
+                'action'   => (string) $actions['update_page_slug'],
+                'callback' => fn( AjaxRequest $request ): array|\WP_Error => $this->manager->update_page_slug(
+                    $request->key( 'page_key' ),
+                    $request->int( 'page_id' ),
+                    $request->title_slug( 'slug' )
                 ),
             ];
         }
