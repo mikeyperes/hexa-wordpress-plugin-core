@@ -30,6 +30,7 @@ src/PluginProvisioning/ Hexa\PluginCore\PluginProvisioning
 src/PluginUpdates/      Hexa\PluginCore\PluginUpdates
 src/ShortcodeRegistry/  Hexa\PluginCore\ShortcodeRegistry
 src/SiteStructure/      Hexa\PluginCore\SiteStructure
+src/SchemaDetection/    Hexa\PluginCore\SchemaDetection
 src/SmartSearch/        Hexa\PluginCore\SmartSearch
 src/SystemEnvironment/  Hexa\PluginCore\SystemEnvironment
 src/WpAdminAjax/        Hexa\PluginCore\WpAdminAjax
@@ -889,3 +890,42 @@ Use `HostTabsRenderer` for the visible host plugin tab shell. It owns the shared
 ## System Checks
 
 `Hexa\PluginCore\SystemChecks\SystemChecksRenderer` renders grouped pass/fail/warn/info checklists from a flat item array. Use it for launch readiness, plugin health, schema audits, and environment checks instead of duplicating checklist HTML in host plugins. See `docs/system-checks.md`.
+
+## Schema Detection
+
+Namespace:
+
+```text
+Hexa\PluginCore\SchemaDetection
+```
+
+Use schema detection for plugin pages that fetch frontend URLs and inspect JSON-LD output. Host plugins own the list of URLs and expected schema types. The core owns fetching, JSON-LD extraction, source labels, duplicate-type conflicts, FAQPage validation, and the dark report UI.
+
+Primary classes:
+
+```text
+SchemaPageScanner
+SchemaScanRenderer
+```
+
+```php
+use Hexa\PluginCore\SchemaDetection\SchemaPageScanner;
+use Hexa\PluginCore\SchemaDetection\SchemaScanRenderer;
+
+$scanner = new SchemaPageScanner();
+$scan = $scanner->scanUrl(
+    home_url( "/" ),
+    [
+        "title" => "Homepage",
+        "cache_bust" => true,
+    ]
+);
+
+echo ( new SchemaScanRenderer() )->renderReport(
+    [ $scan ],
+    [
+        "title" => "Schema Detection Results: HOMEPAGE",
+        "expected" => [ "Expected: Person" ],
+    ]
+);
+```
