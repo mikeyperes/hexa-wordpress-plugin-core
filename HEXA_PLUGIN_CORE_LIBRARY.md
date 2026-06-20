@@ -885,3 +885,7 @@ Use `HostTabsRenderer` for the visible host plugin tab shell. It owns the shared
     ]
 );
 ```
+
+## System Checks
+
+`Hexa\PluginCore\SystemChecks\SystemChecksRenderer` renders grouped pass/fail/warn/info checklists from a flat item array. Use it for launch readiness, plugin health, schema audits, and environment checks instead of duplicating checklist HTML in host plugins. See `docs/system-checks.md`.

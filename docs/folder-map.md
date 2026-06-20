@@ -38,6 +38,7 @@ The package version is stored in the root `VERSION` file.
 | `src/ShortcodeRegistry/` | `Hexa\PluginCore\ShortcodeRegistry` | Shortcode definitions, registries, dashboard display rows, examples, live output, and testing. |
 | `src/SiteStructure/` | `Hexa\PluginCore\SiteStructure` | Critical page blueprints, callback-backed assigned page storage, starter templates, page details, WordPress navigation menu creation, custom menu items, add-all-pages actions, menu structure attachment, and page-to-menu-item tools. |
 | `src/SmartSearch/` | `Hexa\PluginCore\SmartSearch` | Smart search/X-Search AJAX endpoints and reusable typeahead renderers. |
+| `src/SystemChecks/` | `Hexa\PluginCore\SystemChecks` | Grouped readiness, launch, schema, and environment checklist renderers. |
 | `src/SystemEnvironment/` | `Hexa\PluginCore\SystemEnvironment` | Safe constants, INI, shell wrappers, size parsing, CPU/memory detection, and byte formatting. |
 | `src/WpAdminAjax/` | `Hexa\PluginCore\WpAdminAjax` | WordPress admin-AJAX nonce, capability, request parsing, action registration, and callback guards. |
 | `src/WpAdminComponents/` | `Hexa\PluginCore\WpAdminComponents` | Shared UI primitives: cards, subcards, buttons, pills, tooltips, and collapsibles. |
