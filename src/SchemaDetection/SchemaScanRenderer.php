@@ -6,7 +6,9 @@ use Hexa\PluginCore\WpAdminComponents\CoreUi;
 
 final class SchemaScanRenderer {
     public function renderReport( array $scans, array $args = [] ): string {
+        ob_start();
         CoreUi::render_assets();
+        $core_assets = (string) ob_get_clean();
 
         $title    = isset( $args["title"] ) ? (string) $args["title"] : "Schema Detection Results";
         $subtitle = isset( $args["subtitle"] ) ? (string) $args["subtitle"] : "";
@@ -28,6 +30,7 @@ final class SchemaScanRenderer {
         ob_start();
         ?>
         <div class="hpc-ui hpc-schema-report">
+            <?php echo $core_assets; ?>
             <?php echo $this->styles(); ?>
             <div class="hpc-schema-report-head">
                 <div>
