@@ -25,6 +25,7 @@ src/CoreContracts/      Hexa\PluginCore\CoreContracts
 src/CorePackageUpdates/ Hexa\PluginCore\CorePackageUpdates
 src/CoreRuntime/        Hexa\PluginCore\CoreRuntime
 src/CredentialVault/    Hexa\PluginCore\CredentialVault
+src/FaqSets/            Hexa\PluginCore\FaqSets
 src/LogFiles/           Hexa\PluginCore\LogFiles
 src/PluginProvisioning/ Hexa\PluginCore\PluginProvisioning
 src/PluginUpdates/      Hexa\PluginCore\PluginUpdates
@@ -929,3 +930,50 @@ echo ( new SchemaScanRenderer() )->renderReport(
     ]
 );
 ```
+
+## FAQ Sets
+
+Namespace:
+
+```text
+Hexa\PluginCore\FaqSets
+```
+
+Use FAQ sets for repeatable question and answer collections that need shortcode output and FAQPage schema.
+
+Primary class:
+
+```text
+FaqSetManager
+```
+
+```php
+use Hexa\PluginCore\FaqSets\FaqSetManager;
+
+$manager = new FaqSetManager();
+$sets = $manager->sanitizeSets( $raw_sets );
+$set = $manager->resolveSet(
+    $sets,
+    "primary",
+    $primary_slug
+);
+
+echo $manager->renderFaqs(
+    $set,
+    [
+        "style" => "accordion",
+        "inject_schema" => true,
+    ]
+);
+```
+
+Core owns:
+
+- sanitizing FAQ set arrays
+- normalizing question and answer item arrays
+- resolving primary sets
+- safe answer link attributes
+- FAQPage schema arrays and JSON-LD script output
+- reusable list and accordion output
+
+Host plugins own option names, shortcode names, and any plugin-specific source of truth messaging.

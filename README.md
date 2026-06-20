@@ -30,6 +30,7 @@ hexa-wordpress-plugin-core/
     CorePackageUpdates/ -> Hexa\PluginCore\CorePackageUpdates
     CoreRuntime/        -> Hexa\PluginCore\CoreRuntime
     CredentialVault/    -> Hexa\PluginCore\CredentialVault
+    FaqSets/            -> Hexa\PluginCore\FaqSets
     LogFiles/           -> Hexa\PluginCore\LogFiles
     PluginProvisioning/ -> Hexa\PluginCore\PluginProvisioning
     PluginUpdates/      -> Hexa\PluginCore\PluginUpdates
@@ -55,6 +56,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `CorePackageUpdates`: compares and updates the vendored Hexa WordPress Plugin Core package.
 - `CoreRuntime`: runtime value objects such as plugin context and core version metadata.
 - `CredentialVault`: encrypted API-key/secret storage, masking, and credential field examples.
+- `FaqSets`: shared FAQ set sanitizing, item normalization, primary-set resolution, safe answer links, FAQPage schema, and reusable list or accordion output.
 - `LogFiles`: shared error-log source definitions, tail readers, classifiers, search/highlight UI, and renderers.
 - `PluginProvisioning`: shared plugin discovery, status checks, WordPress.org installs, GitHub ZIP installs, folder normalization, and activation.
 - `PluginUpdates`: shared GitHub/update configuration objects and host plugin updater.
@@ -134,6 +136,7 @@ Before adding implementations in another Codex or Claude chat, read:
 - `docs/new-plugin-master-checklist.md`
 - `docs/site-structure.md`
 - `docs/schema-detection.md`
+- `docs/faq-sets.md`
 - the namespace-specific doc for the folder being changed
 
 If a new feature does not fit an existing namespace, document the proposed namespace first before adding code.
@@ -383,4 +386,20 @@ Use `Hexa\PluginCore\WpAdminTabs\HostTabsRenderer` when the host dashboard itsel
 
 ```php
 echo ( new \Hexa\PluginCore\SchemaDetection\SchemaScanRenderer() )->renderReport( [ $scan ], [ "title" => "Schema Detection Results" ] );
+```
+
+## FAQ Sets
+
+`Hexa\PluginCore\FaqSets\FaqSetManager` sanitizes repeatable FAQ set data, normalizes question and answer items, resolves a `primary` set, adds safe link attributes to answer HTML, generates FAQPage schema, and renders reusable list or accordion output. Host plugins keep their own option names and shortcodes. See `docs/faq-sets.md`.
+
+```php
+$manager = new \Hexa\PluginCore\FaqSets\FaqSetManager();
+$set = $manager->resolveSet( $sets, "primary", $primary_slug );
+echo $manager->renderFaqs(
+    $set,
+    [
+        "style" => "accordion",
+        "inject_schema" => true,
+    ]
+);
 ```
