@@ -41,7 +41,7 @@ final class ColorControl {
                 </label>
                 <label class="hpc-color-hex-shell">
                     <span>Hex</span>
-                    <input class="<?php echo esc_attr( $hex_input_class ); ?>" type="text" name="<?php echo esc_attr( $name ); ?>" data-key="<?php echo esc_attr( $key ); ?>" data-hpc-color-hex-input value="<?php echo esc_attr( $value ); ?>" inputmode="text" pattern="#?[0-9a-fA-F]{6}"<?php echo $disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+                    <input class="<?php echo esc_attr( $hex_input_class ); ?>" type="text" name="<?php echo esc_attr( $name ); ?>" data-key="<?php echo esc_attr( $key ); ?>" data-hpc-color-hex-input value="<?php echo esc_attr( $value ); ?>" inputmode="text" maxlength="7" autocomplete="off" spellcheck="false" pattern="#?[0-9a-fA-F]{6}"<?php echo $disabled; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
                 </label>
                 <div class="hpc-color-value">
                     <span>RGB</span>
