@@ -40,6 +40,11 @@ final class CleanupRenderer {
                 #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-toggle input:checked + .hpc-ui-cleanup-slider{background:var(--hpc-blue)}
                 #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-toggle input:checked + .hpc-ui-cleanup-slider:before{transform:translateX(26px)}
                 #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-toggle input:disabled + .hpc-ui-cleanup-slider{cursor:wait;opacity:.55}
+                #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-save{border-radius:999px;display:inline-flex;font-size:11px;font-weight:800;margin-top:6px;min-height:20px;padding:3px 8px}
+                #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-save:empty{display:none}
+                #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-save.is-saving{background:#eef2f7;color:#475569}
+                #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-save.is-saved{background:#e6f4ea;color:#137333}
+                #<?php echo esc_attr( $root_id ); ?> .hpc-ui-cleanup-save.is-error{background:#fce8e6;color:#b32d2e}
             </style>
             <div class="hpc-ui-cleanup-head"><h2>UI Cleanup</h2><p>Hide or collapse noisy WordPress admin elements on the screens where they render. Settings save through AJAX and behavior loads admin-wide.</p></div>
             <?php foreach ( $sections as $section_id => $section ) : ?>
@@ -50,7 +55,7 @@ final class CleanupRenderer {
                     </div>
                     <?php foreach ( $section["options"] as $option ) : $enabled = $this->registry->is_enabled( $option->key ); ?>
                         <div class="hpc-ui-cleanup-row" data-option="<?php echo esc_attr( $option->key ); ?>">
-                            <div><div class="hpc-ui-cleanup-label"><span><?php echo esc_html( $option->label ); ?></span><span class="hpc-ui-cleanup-status<?php echo $enabled ? " is-on" : ""; ?>" data-cleanup-status><?php echo esc_html( $enabled ? $option->on_label : $option->off_label ); ?></span></div><?php if ( "" !== $option->description ) : ?><p class="hpc-ui-cleanup-description"><?php echo esc_html( $option->description ); ?></p><?php endif; ?></div>
+                            <div><div class="hpc-ui-cleanup-label"><span><?php echo esc_html( $option->label ); ?></span><span class="hpc-ui-cleanup-status<?php echo $enabled ? " is-on" : ""; ?>" data-cleanup-status><?php echo esc_html( $enabled ? $option->on_label : $option->off_label ); ?></span></div><?php if ( "" !== $option->description ) : ?><p class="hpc-ui-cleanup-description"><?php echo esc_html( $option->description ); ?></p><?php endif; ?><span class="hpc-ui-cleanup-save" data-cleanup-save aria-live="polite"></span></div>
                             <label class="hpc-ui-cleanup-toggle" aria-label="<?php echo esc_attr( $option->label ); ?>"><input type="checkbox" data-cleanup-toggle data-option="<?php echo esc_attr( $option->key ); ?>" <?php checked( $enabled ); ?>><span class="hpc-ui-cleanup-slider"></span></label>
                         </div>
                     <?php endforeach; ?>
@@ -67,16 +72,19 @@ final class CleanupRenderer {
                 if (!input) return;
                 var row = input.closest("[data-option]");
                 var status = row ? row.querySelector("[data-cleanup-status]") : null;
+                var save = row ? row.querySelector("[data-cleanup-save]") : null;
+                function saveState(state, message){ if (!save) return; save.className = "hpc-ui-cleanup-save" + (state ? " is-" + state : ""); save.textContent = message || ""; }
                 var body = new URLSearchParams();
                 body.set("action", root.dataset.ajaxAction || "");
                 body.set(root.dataset.nonceField || "nonce", root.dataset.nonce || "");
                 body.set("option", input.getAttribute("data-option") || "");
                 body.set("enabled", input.checked ? "1" : "0");
                 input.disabled = true;
+                saveState("saving", "Saving...");
                 fetch(root.dataset.ajaxUrl || window.ajaxurl, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }, body: body.toString() })
                     .then(function(response){ return response.json(); })
-                    .then(function(payload){ if (!payload || !payload.success || !payload.data) throw new Error("Save failed"); if (status) { status.textContent = payload.data.status || (input.checked ? "Hidden" : "Visible"); status.classList.toggle("is-on", !!input.checked); } })
-                    .catch(function(){ input.checked = !input.checked; })
+                    .then(function(payload){ if (!payload || !payload.success || !payload.data) throw new Error((payload && payload.data && (payload.data.message || payload.data.error)) || "Save failed"); if (status) { status.textContent = payload.data.status || (input.checked ? "Hidden" : "Visible"); status.classList.toggle("is-on", !!input.checked); } saveState("saved", "Saved"); })
+                    .catch(function(error){ input.checked = !input.checked; saveState("error", "Error: " + (error && error.message ? error.message : "Save failed")); })
                     .finally(function(){ input.disabled = false; });
             });
         })();

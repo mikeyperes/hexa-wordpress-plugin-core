@@ -70,7 +70,7 @@ final class CleanupRegistry implements ModuleInterface {
         $js_input_ids = array_values( array_unique( array_filter( $js_input_ids ) ) );
         if ( [] !== $css_selectors ) {
             echo "<style id=" . esc_attr( $this->root_id . "-screen-css" ) . ">" . PHP_EOL;
-            echo implode( "," . PHP_EOL, array_map( "esc_html", $css_selectors ) ) . "{display:none!important;}" . PHP_EOL;
+            echo implode( "," . PHP_EOL, array_map( [ $this, "safe_css_selector" ], $css_selectors ) ) . "{display:none!important;}" . PHP_EOL;
             echo "</style>" . PHP_EOL;
         }
         if ( [] === $collapse_selectors && [] === $js_headers && [] === $js_input_ids ) return;
@@ -192,5 +192,9 @@ final class CleanupRegistry implements ModuleInterface {
     private function clean_key( string $value ): string {
         if ( function_exists( "sanitize_key" ) ) return sanitize_key( $value );
         return preg_replace( "/[^a-z0-9_\-]/", "", strtolower( $value ) ) ?: "";
+    }
+
+    private function safe_css_selector( string $selector ): string {
+        return preg_replace( "/[^#\.\[\]\(\)\*\=\^\$\~\|\:\,\s>\+\"\'a-zA-Z0-9_\-]/", "", $selector ) ?: "";
     }
 }
