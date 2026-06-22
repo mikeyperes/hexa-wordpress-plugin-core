@@ -28,6 +28,7 @@ The package version is stored in the root `VERSION` file.
 | --- | --- | --- |
 | `src/AcfFieldFactory/` | `Hexa\PluginCore\AcfFieldFactory` | Reusable ACF field array factories for host field-group registrations. |
 | `src/ActivityLog/` | `Hexa\PluginCore\ActivityLog` | Activity logs and activity storage adapters. |
+| `src/BrandColors/` | `Hexa\PluginCore\BrandColors` | HWS brand color readers, hex normalization, RGB conversion, and color payload helpers. |
 | `src/CoreBootstrap/` | `Hexa\PluginCore\CoreBootstrap` | Core setup, module registration, and lifecycle. |
 | `src/CoreContracts/` | `Hexa\PluginCore\CoreContracts` | Interfaces shared across modules and host plugins. |
 | `src/CorePackageUpdates/` | `Hexa\PluginCore\CorePackageUpdates` | Vendored Hexa WordPress Plugin Core version checks and package update UI. |
