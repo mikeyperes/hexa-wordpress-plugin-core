@@ -16,7 +16,7 @@ src/PluginChecks/
 
 Plugin Checks is the shared Hexa WP Core feature for dependency/plugin requirement tabs.
 
-Host plugins pass a list of plugin definitions. Core checks whether each plugin is installed, active, and up to date, then renders a clean admin view with AJAX install/activate actions and an activity log.
+Host plugins pass a list of plugin definitions. Core checks whether each plugin is installed, active, and up to date, then renders a clean row checklist view with emoji pass/fail markers, AJAX install/activate actions, and an activity log.
 
 ## Public Classes
 

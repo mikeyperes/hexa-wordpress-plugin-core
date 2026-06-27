@@ -65,15 +65,15 @@ final class PluginChecksRenderer {
         ob_start();
         ?>
         <section class="hpc-plugin-checks-summary">
-            <?php echo CoreUi::pill( (string) $summary['total'] . ' configured', 'dark' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            <?php echo CoreUi::pill( (string) $summary['ready'] . ' ready', 'success' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            <?php echo CoreUi::pill( (string) $summary['missing'] . ' missing', $summary['missing'] > 0 ? 'danger' : 'success' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            <?php echo CoreUi::pill( (string) $summary['inactive'] . ' inactive', $summary['inactive'] > 0 ? 'warning' : 'success' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            <?php echo CoreUi::pill( (string) $summary['outdated'] . ' outdated', $summary['outdated'] > 0 ? 'warning' : 'success' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            <span>✅ <?php echo (int) $summary['ready']; ?> ready</span>
+            <span>❌ <?php echo (int) $summary['missing']; ?> missing</span>
+            <span>❌ <?php echo (int) $summary['inactive']; ?> inactive</span>
+            <span>⚠️ <?php echo (int) $summary['outdated']; ?> outdated</span>
+            <span><?php echo (int) $summary['total']; ?> configured</span>
         </section>
         <section class="hpc-plugin-checks-list">
             <?php foreach ( $items as $definition ) : ?>
-                <?php echo $this->render_card( $definition, $status_by_id[ $definition->id ] ?? PluginCheckService::status( $definition ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <?php echo $this->render_row( $definition, $status_by_id[ $definition->id ] ?? PluginCheckService::status( $definition ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endforeach; ?>
         </section>
         <?php
@@ -83,45 +83,51 @@ final class PluginChecksRenderer {
     /**
      * @param array<string,mixed> $status
      */
-    private function render_card( PluginCheckDefinition $definition, array $status ): string {
+    private function render_row( PluginCheckDefinition $definition, array $status ): string {
         $tone = ! empty( $status['ok'] ) ? 'is-ready' : 'needs-attention';
 
         ob_start();
         ?>
-        <article class="hpc-plugin-check-card <?php echo esc_attr( $tone ); ?>" data-plugin-check-card data-plugin-id="<?php echo esc_attr( $definition->id ); ?>" data-plugin-installed="<?php echo ! empty( $status['installed'] ) ? '1' : '0'; ?>" data-plugin-active="<?php echo ! empty( $status['active'] ) ? '1' : '0'; ?>" data-plugin-installable="<?php echo ! empty( $status['installable'] ) ? '1' : '0'; ?>">
-            <div class="hpc-plugin-check-main">
-                <div>
-                    <h3><?php echo esc_html( $definition->name ); ?></h3>
-                    <p class="hpc-plugin-check-path"><?php echo esc_html( (string) $status['plugin_file'] ?: $definition->plugin_file ?: $definition->slug ); ?></p>
-                </div>
-                <div class="hpc-plugin-check-pills">
-                    <?php echo $this->status_pill( 'Installed', ! empty( $status['installed'] ), ! empty( $definition->checks['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    <?php echo $this->status_pill( 'Active', ! empty( $status['active'] ), ! empty( $definition->checks['active'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                    <?php echo $this->status_pill( 'Up to date', ! empty( $status['up_to_date'] ), ! empty( $definition->checks['up_to_date'] ) && ! empty( $status['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                </div>
+        <article class="hpc-plugin-check-row <?php echo esc_attr( $tone ); ?>" data-plugin-check-card data-plugin-id="<?php echo esc_attr( $definition->id ); ?>" data-plugin-installed="<?php echo ! empty( $status['installed'] ) ? '1' : '0'; ?>" data-plugin-active="<?php echo ! empty( $status['active'] ) ? '1' : '0'; ?>" data-plugin-installable="<?php echo ! empty( $status['installable'] ) ? '1' : '0'; ?>">
+            <div class="hpc-plugin-check-plugin">
+                <h3><?php echo esc_html( $definition->name ); ?></h3>
+                <p class="hpc-plugin-check-path"><?php echo esc_html( (string) $status['plugin_file'] ?: $definition->plugin_file ?: $definition->slug ); ?></p>
+                <p class="hpc-plugin-check-source">Source: <?php echo esc_html( $this->source_label( $definition->source ) ); ?></p>
             </div>
-            <div class="hpc-plugin-check-meta">
-                <span>Source: <?php echo esc_html( $this->source_label( $definition->source ) ); ?></span>
-                <?php if ( ! empty( $status['version'] ) ) : ?><span>Version: <?php echo esc_html( (string) $status['version'] ); ?></span><?php endif; ?>
-                <?php if ( ! empty( $status['update_available'] ) ) : ?><span class="is-warning">Update available<?php echo ! empty( $status['new_version'] ) ? ': ' . esc_html( (string) $status['new_version'] ) : ''; ?></span><?php endif; ?>
+            <div class="hpc-plugin-check-list">
+                <?php echo $this->check_item( 'Installed', ! empty( $status['installed'] ), ! empty( $definition->checks['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <?php echo $this->check_item( 'Active', ! empty( $status['active'] ), ! empty( $definition->checks['active'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                <?php echo $this->check_item( 'Up to date', ! empty( $status['up_to_date'] ), ! empty( $definition->checks['up_to_date'] ) && ! empty( $status['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+            </div>
+            <div class="hpc-plugin-check-version">
+                <?php if ( ! empty( $status['version'] ) ) : ?>
+                    <strong><?php echo esc_html( (string) $status['version'] ); ?></strong>
+                    <span>Current version</span>
+                <?php else : ?>
+                    <strong>Not installed</strong>
+                    <span>No local version</span>
+                <?php endif; ?>
+                <?php if ( ! empty( $status['update_available'] ) ) : ?>
+                    <em>Update: <?php echo esc_html( (string) ( $status['new_version'] ?: 'available' ) ); ?></em>
+                <?php endif; ?>
+            </div>
+            <div class="hpc-plugin-check-actions">
+                <?php echo $this->actions_html( $definition, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </div>
             <?php if ( '' !== $definition->notes ) : ?>
                 <p class="hpc-plugin-check-notes"><?php echo wp_kses_post( $definition->notes ); ?></p>
             <?php endif; ?>
-            <div class="hpc-plugin-check-actions">
-                <?php echo $this->actions_html( $definition, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-            </div>
         </article>
         <?php
         return (string) ob_get_clean();
     }
 
-    private function status_pill( string $label, bool $passed, bool $checked ): string {
+    private function check_item( string $label, bool $passed, bool $checked ): string {
         if ( ! $checked ) {
-            return CoreUi::pill( $label . ': not checked', 'dark' );
+            return '<span class="hpc-plugin-check-item is-muted">• ' . esc_html( $label ) . ': not checked</span>';
         }
 
-        return CoreUi::pill( $label . ': ' . ( $passed ? 'yes' : 'no' ), $passed ? 'success' : 'danger' );
+        return '<span class="hpc-plugin-check-item ' . ( $passed ? 'is-pass' : 'is-fail' ) . '">' . ( $passed ? '✅' : '❌' ) . ' ' . esc_html( $label ) . '</span>';
     }
 
     /**
@@ -172,7 +178,7 @@ final class PluginChecksRenderer {
             return CoreUi::external_link( admin_url( 'update-core.php' ), 'Open updates', 'hpc-button secondary' );
         }
 
-        return '<span class="hpc-plugin-check-ready">Ready</span>';
+        return '<span class="hpc-plugin-check-ready">✅ Ready</span>';
     }
 
     private function source_label( string $source ): string {
@@ -228,26 +234,34 @@ final class PluginChecksRenderer {
 .hpc-plugin-checks-hero h2{font-size:24px;line-height:1.2;margin:0 0 8px}
 .hpc-plugin-checks-hero p{max-width:780px}
 .hpc-plugin-checks-hero-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
-.hpc-plugin-checks-summary{align-items:center;background:#fff;border:1px solid var(--hpc-line);border-radius:8px;display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px}
-.hpc-plugin-checks-list{display:grid;gap:12px}
-.hpc-plugin-check-card{background:#fff;border:1px solid var(--hpc-line);border-left:5px solid var(--hpc-green);border-radius:8px;padding:15px}
-.hpc-plugin-check-card.needs-attention{border-left-color:var(--hpc-amber)}
-.hpc-plugin-check-main{align-items:flex-start;display:grid;gap:12px;grid-template-columns:minmax(0,1fr) auto}
-.hpc-plugin-check-main h3{font-size:17px;margin:0 0 4px}
+.hpc-plugin-checks-summary{align-items:center;background:#fff;border:1px solid var(--hpc-line);border-radius:8px;display:flex;flex-wrap:wrap;font-size:13px;font-weight:800;gap:14px;padding:12px 14px}
+.hpc-plugin-checks-list{background:#fff;border:1px solid var(--hpc-line);border-radius:8px;display:grid;overflow:hidden}
+.hpc-plugin-check-row{align-items:center;background:#fff;border-left:5px solid var(--hpc-green);border-bottom:1px solid #edf1f6;display:grid;gap:16px;grid-template-columns:minmax(220px,1.25fr) minmax(280px,1.35fr) minmax(140px,.7fr) auto;padding:14px 16px}
+.hpc-plugin-check-row:last-child{border-bottom:0}
+.hpc-plugin-check-row.needs-attention{border-left-color:var(--hpc-amber)}
+.hpc-plugin-check-plugin h3{font-size:16px;margin:0 0 3px}
 .hpc-plugin-check-path{color:var(--hpc-muted)!important;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:12px!important;margin:0!important;word-break:break-all}
-.hpc-plugin-check-pills{align-items:center;display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
-.hpc-plugin-check-meta{align-items:center;color:var(--hpc-muted);display:flex;flex-wrap:wrap;font-size:12px;gap:10px;margin:11px 0 0}
-.hpc-plugin-check-meta .is-warning{color:var(--hpc-amber);font-weight:800}
-.hpc-plugin-check-notes{background:#f8fafc;border:1px solid #e4e8ef;border-radius:8px;color:#3f4d63;margin:12px 0 0!important;padding:10px}
-.hpc-plugin-check-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px;margin-top:13px}
-.hpc-plugin-check-ready{background:#eaf8ef;border:1px solid #ccefd7;border-radius:999px;color:var(--hpc-green);display:inline-flex;font-weight:800;line-height:1;padding:8px 12px}
+.hpc-plugin-check-source{color:var(--hpc-muted)!important;font-size:12px!important;margin:5px 0 0!important}
+.hpc-plugin-check-list{display:grid;gap:6px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.hpc-plugin-check-item{font-size:13px;font-weight:800;line-height:1.25;white-space:nowrap}
+.hpc-plugin-check-item.is-pass{color:var(--hpc-green)}
+.hpc-plugin-check-item.is-fail{color:var(--hpc-red)}
+.hpc-plugin-check-item.is-muted{color:var(--hpc-muted)}
+.hpc-plugin-check-version{display:grid;gap:2px}
+.hpc-plugin-check-version strong{color:var(--hpc-ink);font-size:13px}
+.hpc-plugin-check-version span{color:var(--hpc-muted);font-size:12px}
+.hpc-plugin-check-version em{color:var(--hpc-amber);font-size:12px;font-style:normal;font-weight:800}
+.hpc-plugin-check-notes{background:#f8fafc;border:1px solid #e4e8ef;border-radius:8px;color:#3f4d63;grid-column:1 / -1;margin:0!important;padding:9px 10px}
+.hpc-plugin-check-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.hpc-plugin-check-ready{color:var(--hpc-green);display:inline-flex;font-weight:900;line-height:1;padding:8px 0}
 .hpc-plugin-check-muted{color:var(--hpc-muted);font-style:italic}
 .hpc-plugin-checks-log{background:#111827;border-radius:8px;color:#dbe7f3;overflow:hidden}
 .hpc-plugin-checks-log-head{align-items:center;border-bottom:1px solid #263244;display:flex;justify-content:space-between;padding:10px 12px}
 .hpc-plugin-checks-log-head strong{color:#fff}
 .hpc-plugin-checks-log-head .hpc-button{padding:7px 10px}
 .hpc-plugin-checks-log pre{background:transparent;color:#dbe7f3;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;margin:0;max-height:240px;overflow:auto;padding:12px;white-space:pre-wrap}
-@media(max-width:980px){.hpc-plugin-checks-hero,.hpc-plugin-check-main{grid-template-columns:1fr}.hpc-plugin-checks-hero-actions,.hpc-plugin-check-pills{justify-content:flex-start}}
+@media(max-width:1100px){.hpc-plugin-check-row{grid-template-columns:1fr}.hpc-plugin-check-actions{justify-content:flex-start}.hpc-plugin-check-list{grid-template-columns:1fr}}
+@media(max-width:980px){.hpc-plugin-checks-hero{grid-template-columns:1fr}.hpc-plugin-checks-hero-actions{justify-content:flex-start}}
 </style>
 <script>
 (function(){
