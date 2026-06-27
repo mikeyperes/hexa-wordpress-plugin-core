@@ -91,13 +91,13 @@ final class PluginChecksRenderer {
         <article class="hpc-plugin-check-row <?php echo esc_attr( $tone ); ?>" data-plugin-check-card data-plugin-id="<?php echo esc_attr( $definition->id ); ?>" data-plugin-installed="<?php echo ! empty( $status['installed'] ) ? '1' : '0'; ?>" data-plugin-active="<?php echo ! empty( $status['active'] ) ? '1' : '0'; ?>" data-plugin-installable="<?php echo ! empty( $status['installable'] ) ? '1' : '0'; ?>">
             <div class="hpc-plugin-check-plugin">
                 <h3><?php echo esc_html( $definition->name ); ?></h3>
+                <div class="hpc-plugin-check-list" aria-label="<?php echo esc_attr( $definition->name . ' checklist' ); ?>">
+                    <?php echo $this->check_item( 'Installed', ! empty( $status['installed'] ), ! empty( $definition->checks['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    <?php echo $this->check_item( 'Active', ! empty( $status['active'] ), ! empty( $definition->checks['active'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    <?php echo $this->check_item( 'Up to date', ! empty( $status['up_to_date'] ), ! empty( $definition->checks['up_to_date'] ) && ! empty( $status['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </div>
                 <p class="hpc-plugin-check-path"><?php echo esc_html( (string) $status['plugin_file'] ?: $definition->plugin_file ?: $definition->slug ); ?></p>
                 <p class="hpc-plugin-check-source">Source: <?php echo esc_html( $this->source_label( $definition->source ) ); ?></p>
-            </div>
-            <div class="hpc-plugin-check-list">
-                <?php echo $this->check_item( 'Installed', ! empty( $status['installed'] ), ! empty( $definition->checks['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                <?php echo $this->check_item( 'Active', ! empty( $status['active'] ), ! empty( $definition->checks['active'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-                <?php echo $this->check_item( 'Up to date', ! empty( $status['up_to_date'] ), ! empty( $definition->checks['up_to_date'] ) && ! empty( $status['installed'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </div>
             <div class="hpc-plugin-check-version">
                 <?php if ( ! empty( $status['version'] ) ) : ?>
@@ -236,13 +236,13 @@ final class PluginChecksRenderer {
 .hpc-plugin-checks-hero-actions{align-items:center;display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
 .hpc-plugin-checks-summary{align-items:center;background:#fff;border:1px solid var(--hpc-line);border-radius:8px;display:flex;flex-wrap:wrap;font-size:13px;font-weight:800;gap:14px;padding:12px 14px}
 .hpc-plugin-checks-list{background:#fff;border:1px solid var(--hpc-line);border-radius:8px;display:grid;overflow:hidden}
-.hpc-plugin-check-row{align-items:center;background:#fff;border-left:5px solid var(--hpc-green);border-bottom:1px solid #edf1f6;display:grid;gap:16px;grid-template-columns:minmax(220px,1.25fr) minmax(280px,1.35fr) minmax(140px,.7fr) auto;padding:14px 16px}
+.hpc-plugin-check-row{align-items:center;background:#fff;border-left:5px solid var(--hpc-green);border-bottom:1px solid #edf1f6;display:grid;gap:16px;grid-template-columns:minmax(0,1fr) minmax(140px,.22fr) auto;padding:14px 16px}
 .hpc-plugin-check-row:last-child{border-bottom:0}
 .hpc-plugin-check-row.needs-attention{border-left-color:var(--hpc-amber)}
-.hpc-plugin-check-plugin h3{font-size:16px;margin:0 0 3px}
+.hpc-plugin-check-plugin h3{font-size:16px;margin:0 0 7px}
 .hpc-plugin-check-path{color:var(--hpc-muted)!important;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:12px!important;margin:0!important;word-break:break-all}
 .hpc-plugin-check-source{color:var(--hpc-muted)!important;font-size:12px!important;margin:5px 0 0!important}
-.hpc-plugin-check-list{display:grid;gap:6px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.hpc-plugin-check-list{align-items:center;display:flex;flex-wrap:wrap;gap:7px 12px;margin:0 0 7px}
 .hpc-plugin-check-item{font-size:13px;font-weight:800;line-height:1.25;white-space:nowrap}
 .hpc-plugin-check-item.is-pass{color:var(--hpc-green)}
 .hpc-plugin-check-item.is-fail{color:var(--hpc-red)}
@@ -260,7 +260,7 @@ final class PluginChecksRenderer {
 .hpc-plugin-checks-log-head strong{color:#fff}
 .hpc-plugin-checks-log-head .hpc-button{padding:7px 10px}
 .hpc-plugin-checks-log pre{background:transparent;color:#dbe7f3;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;margin:0;max-height:240px;overflow:auto;padding:12px;white-space:pre-wrap}
-@media(max-width:1100px){.hpc-plugin-check-row{grid-template-columns:1fr}.hpc-plugin-check-actions{justify-content:flex-start}.hpc-plugin-check-list{grid-template-columns:1fr}}
+@media(max-width:1100px){.hpc-plugin-check-row{grid-template-columns:1fr}.hpc-plugin-check-actions{justify-content:flex-start}}
 @media(max-width:980px){.hpc-plugin-checks-hero{grid-template-columns:1fr}.hpc-plugin-checks-hero-actions{justify-content:flex-start}}
 </style>
 <script>
