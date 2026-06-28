@@ -18,6 +18,7 @@ final class SchemaDashboardRenderer {
         $sections    = isset( $args['integrity_sections'] ) && is_array( $args['integrity_sections'] ) ? $args['integrity_sections'] : [];
         $graphs      = isset( $args['graphs'] ) && is_array( $args['graphs'] ) ? $args['graphs'] : [];
         $shortcode   = isset( $args['shortcode_card'] ) && is_array( $args['shortcode_card'] ) ? $args['shortcode_card'] : [];
+        $html_sections = isset( $args['html_sections'] ) && is_array( $args['html_sections'] ) ? $args['html_sections'] : [];
         $scan_html   = (string) ( $args['scan_report_html'] ?? '' );
 
         ob_start();
@@ -55,6 +56,12 @@ final class SchemaDashboardRenderer {
             <?php if ( $shortcode ) : ?>
                 <?php echo $this->shortcode_card( $shortcode ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             <?php endif; ?>
+
+            <?php foreach ( $html_sections as $html_section ) : ?>
+                <section class="hpc-card hpc-schema-dashboard-section">
+                    <?php echo (string) $html_section; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                </section>
+            <?php endforeach; ?>
 
             <?php foreach ( $sections as $section ) : ?>
                 <?php echo $this->integrity_section( $section ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
