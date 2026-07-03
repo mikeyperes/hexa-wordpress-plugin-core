@@ -55,6 +55,10 @@ final class BackupCleanupScanner {
             return new \WP_Error( 'backup_not_writable', 'Backup file is not writable.' );
         }
 
+        if ( ! is_writable( dirname( $path ) ) ) {
+            return new \WP_Error( 'backup_directory_not_writable', 'Backup file directory is not writable.' );
+        }
+
         if ( ! @unlink( $path ) ) {
             return new \WP_Error( 'backup_delete_failed', 'WordPress could not delete the backup file.' );
         }
@@ -114,7 +118,7 @@ final class BackupCleanupScanner {
                         'modified'       => $modified,
                         'modified_label' => $modified > 0 && function_exists( 'wp_date' ) ? wp_date( 'M j, Y g:i a', $modified ) : ( $modified > 0 ? gmdate( 'M j, Y H:i', $modified ) : 'Unknown' ),
                         'age_days'       => $modified > 0 ? max( 0, (int) floor( ( time() - $modified ) / DAY_IN_SECONDS ) ) : null,
-                        'writable'       => is_writable( $path ),
+                        'writable'       => is_writable( $path ) && is_writable( dirname( $path ) ),
                     ];
                 }
             }
