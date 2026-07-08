@@ -196,6 +196,8 @@ This panel compares the vendored `VERSION` in the host plugin with the public Gi
 
 ## Getting Started Checklist
 
+Version 0.19.30 adds an Activate action for installed-but-inactive forbidden plugin rows, so cleanup inventories can temporarily activate an unwanted plugin before taking other action when needed.
+
 Version 0.19.29 adds `PluginRecommendationRegistry`, a reusable Hexa plugin recommendation registry for site inventory scans, aggregate recommendations, per-provider recommendations, and installed plugins that are not recommended by any registered Hexa plugin.
 
 Version 0.19.28 adds subtle secondary Deactivate and Delete controls to reusable plugin inventory rows. Installed plugins can be deactivated or deleted through guarded AJAX actions while must-use and drop-in plugins remain blocked.
