@@ -38,7 +38,9 @@ src/CoreContracts/      Hexa\PluginCore\CoreContracts
 src/CorePackageUpdates/ Hexa\PluginCore\CorePackageUpdates
 src/CoreRuntime/        Hexa\PluginCore\CoreRuntime
 src/CredentialVault/    Hexa\PluginCore\CredentialVault
+src/DatabaseCleanup/    Hexa\PluginCore\DatabaseCleanup
 src/LogFiles/           Hexa\PluginCore\LogFiles
+src/ObjectCache/        Hexa\PluginCore\ObjectCache
 src/PluginProvisioning/ Hexa\PluginCore\PluginProvisioning
 src/PluginUpdates/      Hexa\PluginCore\PluginUpdates
 src/SnippetRegistry/    Hexa\PluginCore\SnippetRegistry
@@ -72,6 +74,8 @@ Never make a module boot itself at file include time. Modules register hooks fro
 - Put interfaces in `src/CoreContracts`.
 - Put reusable ACF field array factories in `src/AcfFieldFactory`.
 - Put runtime value objects and version metadata in `src/CoreRuntime`.
+- Put reusable database cleanup sessions, table optimization, provider activation, and live row reporting in `src/DatabaseCleanup`.
+- Put reusable object-cache provider status and activation adapters in `src/ObjectCache`.
 - Put admin tab abstractions in `src/WpAdminTabs`.
 - Put reusable visual primitives in `src/WpAdminComponents`.
 - Put reusable error-log viewer/read/classification features in `src/LogFiles`.
