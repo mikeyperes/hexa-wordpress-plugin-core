@@ -770,13 +770,17 @@ $logger->add( new ActivityLogEntry( 'Update started.', [], 'admin', 'updater', n
 
 Every consuming plugin should:
 
-1. Load Composer or the vendored core autoloader.
-2. Create `Hexa\PluginCore\CoreRuntime\PluginContext`.
-3. Create `Hexa\PluginCore\CoreBootstrap\CoreBootstrap`.
-4. Add core modules and host adapter modules.
-5. Call `boot()` once.
+1. Require the vendored root `bootstrap.php` and register its candidate.
+2. Let the shared resolver select one package before referencing any Core class.
+3. Create `Hexa\PluginCore\CoreRuntime\PluginContext`.
+4. Create `Hexa\PluginCore\CoreBootstrap\CoreBootstrap`.
+5. Add core modules and host adapter modules, then call `boot()` once.
 
 ```php
+$core_root = __DIR__ . '/lib/hexa-wordpress-plugin-core';
+require_once $core_root . '/bootstrap.php';
+\hexa_plugin_core_register_package( 'example-plugin', $core_root );
+
 use Hexa\PluginCore\CoreBootstrap\CoreBootstrap;
 use Hexa\PluginCore\CoreRuntime\PluginContext;
 
@@ -1202,10 +1206,19 @@ Hexa\PluginCore\CoreRuntime
 Core classes:
 
 ```text
+CorePackageRuntime
 PluginContext
 ```
 
 Use `PluginContext` for host plugin identity. Do not hard-code host plugin names inside shared core classes.
+
+`CorePackageRuntime::report()` exposes the single selected package root, every registered vendored candidate, package fingerprint mismatches, incompatible constraints, and Core classes loaded outside the selected root. Every host must use root `bootstrap.php`; competing plugin-specific autoloaders are forbidden.
+
+## Checklist Workflow Extensions
+
+`GettingStartedChecklistRenderer` exposes a host-neutral browser API on `root.hexaChecklistApi`. It dispatches `hexa:checklist:ready` and `hexa:checklist:run` events. A host with a specialized live workflow may claim only its own step by setting `event.detail.handled = true` and assigning `event.detail.promise`.
+
+The API provides input collection/validation, row state, reports, logs, and guarded arbitrary-action POST requests. Host-specific step IDs, input keys, AJAX actions, CSS, and result mapping stay in the host plugin. Number inputs support `min`, `max`, and `step` with browser and server enforcement.
 
 ## Agent Checklist
 

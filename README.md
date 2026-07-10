@@ -23,6 +23,8 @@ Every sub-namespace has its own folder under `src/`.
 ```text
 hexa-wordpress-plugin-core/
   VERSION
+  PACKAGE_HASH
+  bootstrap.php
   src/
     AcfFieldFactory/    -> Hexa\PluginCore\AcfFieldFactory
     ActivityLog/        -> Hexa\PluginCore\ActivityLog
@@ -70,7 +72,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `CoreBootstrap`: consistent setup/init protocol for loading this core in a host plugin.
 - `CoreContracts`: interfaces that host plugins and core modules must follow.
 - `CorePackageUpdates`: compares and updates the vendored Hexa WordPress Plugin Core package.
-- `CoreRuntime`: runtime value objects such as plugin context and core version metadata.
+- `CoreRuntime`: runtime value objects, plugin context, version metadata, and selected-package integrity diagnostics.
 - `ContentCleanup`: old content detection, backup file detection/deletion, article/media cleanup, all-matching and all-except-latest-X batch deletion, guarded AJAX actions, collapsible service cards, human-readable rule and scan-location detail cards, AJAX table updates, and collapsed Hexa Core Log Type 1 cleanup activity UI.
 - `CredentialVault`: encrypted API-key/secret storage, masking, and credential field examples.
 - `FieldStructures`: reusable displays and status checks for ACF groups, custom post types, taxonomies, and option-backed feature structures.
@@ -114,15 +116,19 @@ Core classes must read those values from `PluginContextInterface`. They must not
 
 Every plugin that uses this core follows the same sequence:
 
-1. Load Composer autoload or the vendored core autoloader.
-2. Build a `PluginContext`.
-3. Build a `CoreBootstrap` with that context.
-4. Register modules with the bootstrap.
-5. Call `boot()` once.
+1. Require the vendored root `bootstrap.php` and register the package candidate.
+2. Wait for the shared resolver to select one package on `plugins_loaded`.
+3. Build a `PluginContext`.
+4. Build a `CoreBootstrap` with that context.
+5. Register modules with the bootstrap and call `boot()` once.
 
 Example:
 
 ```php
+$core_root = __DIR__ . '/lib/hexa-wordpress-plugin-core';
+require_once $core_root . '/bootstrap.php';
+\hexa_plugin_core_register_package( 'hws-base-tools', $core_root );
+
 use Hexa\PluginCore\CoreBootstrap\CoreBootstrap;
 use Hexa\PluginCore\CoreRuntime\PluginContext;
 

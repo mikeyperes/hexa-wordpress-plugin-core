@@ -20,7 +20,7 @@ The repository folder is:
 hexa-wordpress-plugin-core
 ```
 
-The package version is stored in the root `VERSION` file.
+The package version is stored in the root `VERSION` file. Root `bootstrap.php` selects one vendored package owner for the shared namespace, and `PACKAGE_HASH` identifies the executable package build.
 
 ## Sub-Namespace Folders
 

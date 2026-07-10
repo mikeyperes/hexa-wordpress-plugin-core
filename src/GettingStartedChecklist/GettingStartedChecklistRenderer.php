@@ -261,6 +261,9 @@ final class GettingStartedChecklistRenderer {
                         placeholder="<?php echo esc_attr( (string) ( $input['placeholder'] ?? '' ) ); ?>"
                         <?php echo $required ? 'required' : ''; ?>
                         <?php echo '' !== (string) ( $input['pattern'] ?? '' ) ? 'pattern="' . esc_attr( (string) $input['pattern'] ) . '"' : ''; ?>
+                        <?php echo '' !== (string) ( $input['min'] ?? '' ) ? 'min="' . esc_attr( (string) $input['min'] ) . '"' : ''; ?>
+                        <?php echo '' !== (string) ( $input['max'] ?? '' ) ? 'max="' . esc_attr( (string) $input['max'] ) . '"' : ''; ?>
+                        <?php echo '' !== (string) ( $input['step'] ?? '' ) ? 'step="' . esc_attr( (string) $input['step'] ) . '"' : ''; ?>
                         <?php echo '' !== (string) ( $input['autocomplete'] ?? '' ) ? 'autocomplete="' . esc_attr( (string) $input['autocomplete'] ) . '"' : ''; ?>
                         data-gsc-input
                         data-input-id="<?php echo esc_attr( $id ); ?>"
@@ -586,6 +589,12 @@ final class GettingStartedChecklistRenderer {
                         message = label + ' is required.';
                     } else if (value && type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
                         message = label + ' must be a valid email address.';
+                    } else if (value && type === 'number' && !Number.isFinite(Number(value))) {
+                        message = label + ' must be a number.';
+                    } else if (value && type === 'number' && input.min !== '' && Number(value) < Number(input.min)) {
+                        message = label + ' must be at least ' + input.min + '.';
+                    } else if (value && type === 'number' && input.max !== '' && Number(value) > Number(input.max)) {
+                        message = label + ' must be no more than ' + input.max + '.';
                     } else if (type === 'confirmation' && input.dataset.confirmText) {
                         var expected = text(input.dataset.confirmText);
                         var actual = value;
@@ -679,6 +688,68 @@ final class GettingStartedChecklistRenderer {
                     return payload.data || {};
                 });
             }
+            function postAction(action, payload){
+                var body = new URLSearchParams();
+                body.set('action', action || '');
+                body.set(root.dataset.nonceField || 'nonce', root.dataset.nonce || '');
+                Object.keys(payload || {}).forEach(function(key){
+                    var value = payload[key];
+                    if (Array.isArray(value)) {
+                        value.forEach(function(item){ body.append(key + '[]', item); });
+                    } else {
+                        body.set(key, value);
+                    }
+                });
+                return fetch(root.dataset.ajaxUrl || window.ajaxurl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+                    body: body.toString()
+                }).then(function(response){ return response.json(); }).then(function(payload){
+                    if (!payload || !payload.success) {
+                        var message = payload && payload.data && (payload.data.message || payload.data.error) ? (payload.data.message || payload.data.error) : 'AJAX request failed.';
+                        throw new Error(message);
+                    }
+                    return payload.data || {};
+                });
+            }
+            var extensionApi = {
+                root: root,
+                text: text,
+                escapeHtml: esc,
+                cssSelectorValue: css,
+                currentTemplateId: currentTemplateId,
+                collectRowInputs: collectRowInputs,
+                validateRowInputs: validateRowInputs,
+                setRowState: setRowState,
+                reportTarget: reportTarget,
+                clearReport: clearReport,
+                renderReports: renderReports,
+                addLog: addLog,
+                addLogs: addLogs,
+                refreshInputState: refreshInputState,
+                postAction: postAction
+            };
+            root.hexaChecklistApi = extensionApi;
+            root.dispatchEvent(new CustomEvent('hexa:checklist:ready', {detail:{api:extensionApi}}));
+            function runExtension(row, scope){
+                var detail = {
+                    api: extensionApi,
+                    row: row,
+                    scope: scope,
+                    stepId: row ? row.dataset.stepId || '' : '',
+                    subtaskId: row ? row.dataset.subtaskId || '' : '',
+                    handled: false,
+                    promise: null
+                };
+                root.dispatchEvent(new CustomEvent('hexa:checklist:run', {detail:detail}));
+                if (!detail.handled) return null;
+                return Promise.resolve(detail.promise).then(function(result){ return result !== false; }).catch(function(error){
+                    setRowState(row, 'failed', error && error.message ? error.message : 'Failed');
+                    addLog({level:'error', message:error && error.message ? error.message : 'Checklist workflow extension failed.', context:{step_id:detail.stepId, subtask_id:detail.subtaskId}});
+                    return false;
+                });
+            }
             function runItem(row){
                 var stepId = row ? row.dataset.stepId : '';
                 var subtaskId = row ? row.dataset.subtaskId : '';
@@ -688,6 +759,8 @@ final class GettingStartedChecklistRenderer {
                     refreshInputState();
                     return Promise.resolve(false);
                 }
+                var extension = runExtension(row, 'item');
+                if (extension) return extension;
                 setRowState(row, 'running', 'Running');
                 clearReport(row);
                 return postItem(stepId, subtaskId, collectRowInputs(row)).then(function(data){
@@ -733,6 +806,8 @@ final class GettingStartedChecklistRenderer {
                     refreshInputState();
                     return false;
                 }
+                var extension = runExtension(stepRow, 'step');
+                if (extension) return extension;
                 if (!subtasks.length) {
                     return runItem(stepRow);
                 }
