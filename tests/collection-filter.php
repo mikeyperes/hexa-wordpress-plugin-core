@@ -57,6 +57,7 @@ $checks = [
         && str_contains( $source, "visible + ' of ' + items.length"),
     'Supports clear, Escape, initial load, and AJAX tab reloads.' => str_contains( $source, "event.key !== 'Escape'")
         && str_contains( $source, 'window.hexaPluginCoreInitCollectionFilters')
+        && str_contains( $source, "DOMContentLoaded" )
         && str_contains( $source, "document.addEventListener('hexa-core-host-tab-loaded'"),
     'Rejects a filter without a target collection.' => '' === CoreUi::collection_filter( [ 'label' => 'Invalid' ] ),
 ];

@@ -277,7 +277,11 @@ final class CoreUi {
                 });
             }
             window.hexaPluginCoreInitCollectionFilters = initCollectionFilters;
-            initCollectionFilters(document);
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", function() { initCollectionFilters(document); });
+            } else {
+                initCollectionFilters(document);
+            }
             document.addEventListener('hexa-core-host-tab-loaded', function(event) {
                 initCollectionFilters(event.detail && event.detail.panel ? event.detail.panel : document);
             });

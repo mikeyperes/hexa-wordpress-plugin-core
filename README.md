@@ -210,6 +210,8 @@ This panel compares the vendored `VERSION` in the host plugin with the public Gi
 
 Version 0.19.52 adds CoreUi::collection_filter() for searchable admin-card collections. Hosts supply the target ID, item selector, optional group selector, labels, and empty-state text. Core owns case-insensitive matching, visible/total counts, group hiding, clear and Escape behavior, and reinitialization after hexa-core-host-tab-loaded.
 
+Version 0.19.53 also initializes collection filters after DOMContentLoaded so first-render panels work before any AJAX navigation.
+
 The grouped sidebar now places plugin identity and its expand/collapse control in one rail header. The expanded control sits at the top-right; collapsed mode hides identity and centers the control in the compact rail.
 
 ## Scoped CSS Override References
