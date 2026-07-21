@@ -311,18 +311,34 @@ final class CoreUi {
     public static function toggle( string $name, bool $checked, string $label, array $args = [] ): string {
         $id           = isset( $args['id'] ) ? sanitize_key( (string) $args['id'] ) : sanitize_key( $name . '-' . md5( $label ) );
         $value        = isset( $args['value'] ) ? (string) $args['value'] : '1';
-        $class        = trim( 'hpc-toggle ' . sanitize_html_class( (string) ( $args['class'] ?? '' ) ) );
+        $class_names  = preg_split( '/\s+/', trim( 'hpc-toggle ' . (string) ( $args['class'] ?? '' ) ) ) ?: [];
+        $class_names  = array_values( array_filter( array_map( 'sanitize_html_class', $class_names ) ) );
+        $class        = implode( ' ', $class_names );
+        $input_names  = preg_split( '/\s+/', trim( (string) ( $args['input_class'] ?? '' ) ) ) ?: [];
+        $input_names  = array_values( array_filter( array_map( 'sanitize_html_class', $input_names ) ) );
+        $input_class  = [] !== $input_names ? ' class="' . esc_attr( implode( ' ', $input_names ) ) . '"' : '';
         $disabled     = ! empty( $args['disabled'] ) ? ' disabled' : '';
         $tooltip      = '' !== (string) ( $args['tooltip'] ?? '' ) ? ' ' . self::tooltip( (string) $args['tooltip'] ) : '';
         $checked_attr = $checked ? ' checked' : '';
+        $data_attrs   = '';
+
+        foreach ( (array) ( $args['data'] ?? [] ) as $data_key => $data_value ) {
+            if ( ! is_scalar( $data_value ) ) {
+                continue;
+            }
+            $data_key = sanitize_key( str_replace( '_', '-', (string) $data_key ) );
+            if ( '' === $data_key ) {
+                continue;
+            }
+            $data_attrs .= ' data-' . $data_key . '="' . esc_attr( (string) $data_value ) . '"';
+        }
 
         return '<label class="' . esc_attr( $class ) . '" for="' . esc_attr( $id ) . '">'
-            . '<input id="' . esc_attr( $id ) . '" type="checkbox" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"' . $checked_attr . $disabled . '>'
+            . '<input id="' . esc_attr( $id ) . '" type="checkbox" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"' . $input_class . $data_attrs . $checked_attr . $disabled . '>'
             . '<span class="hpc-toggle-ui" aria-hidden="true"></span>'
             . '<span class="hpc-toggle-label">' . esc_html( $label ) . $tooltip . '</span>'
             . '</label>';
     }
-
     public static function inline_details( string $summary, string $body_html, bool $open = false ): string {
         return '<details class="hpc-inline-details"' . ( $open ? ' open' : '' ) . '><summary>' . esc_html( $summary ) . '</summary><div class="hpc-inline-details-body">' . wp_kses_post( $body_html ) . '</div></details>';
     }

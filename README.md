@@ -220,6 +220,8 @@ Its `pre_get_posts` coordination is deliberately narrow: unrelated, admin, AJAX,
 
 ## Collection Filters and Sidebar Header
 
+Version 0.19.63 lets CoreUi::toggle() accept sanitized host input classes and data attributes, allowing AJAX-saving host plugins to use the shared toggle renderer without rebuilding its markup.
+
 Version 0.19.62 gives collection-filter search inputs enough selector specificity and left padding to keep the shared search icon separate from placeholder and entered text under WordPress admin styles.
 
 Version 0.19.57 gives filtered items an explicit Core hide state so host row layouts cannot override `hidden` and leave nonmatches visible. Core collapsible titles also wrap instead of truncating on narrow screens.
