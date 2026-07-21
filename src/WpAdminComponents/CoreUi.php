@@ -118,8 +118,8 @@ final class CoreUi {
             .hpc-credential-head p{color:var(--hpc-muted);font-size:13px;margin:0}
             .hpc-collection-filter{align-items:center;background:#f8fafc;border:1px solid var(--hpc-line);border-radius:8px;display:grid;gap:8px 14px;grid-template-columns:minmax(240px,520px) auto;margin:18px 0;padding:12px 14px}
             .hpc-collection-filter-field{min-width:0;position:relative}
-            .hpc-collection-filter-icon{color:#718096;font-size:18px;height:18px;left:11px;pointer-events:none;position:absolute;top:50%;transform:translateY(-50%);width:18px}
-            .hpc-collection-filter-input{background:#fff;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;height:40px;margin:0;padding:0 40px 0 37px;width:100%}
+            .hpc-collection-filter-icon{color:#718096;font-size:18px;height:18px;left:14px;pointer-events:none;position:absolute;top:50%;transform:translateY(-50%);width:18px;z-index:1}
+            .hpc-collection-filter-field .hpc-collection-filter-input{background:#fff;border:1px solid #cbd5e1;border-radius:6px;box-sizing:border-box;font-size:13px;height:40px;margin:0;padding:0 44px 0 46px;width:100%}
             .hpc-collection-filter-input:focus{border-color:var(--hpc-blue);box-shadow:0 0 0 2px rgba(49,87,213,.14);outline:0}
             .hpc-collection-filter-clear{align-items:center;background:transparent;border:0;border-radius:5px;color:#64748b;cursor:pointer;display:flex;height:30px;justify-content:center;padding:0;position:absolute;right:5px;top:50%;transform:translateY(-50%);width:30px}
             .hpc-collection-filter-clear:hover{background:#eef2f7;color:#172033}
