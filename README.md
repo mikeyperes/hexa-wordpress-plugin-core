@@ -29,6 +29,7 @@ hexa-wordpress-plugin-core/
     AcfFieldFactory/    -> Hexa\PluginCore\AcfFieldFactory
     ActivityLog/        -> Hexa\PluginCore\ActivityLog
     BrandColors/        -> Hexa\PluginCore\BrandColors
+    BrandProfiles/      -> Hexa\PluginCore\BrandProfiles
     CoreBootstrap/      -> Hexa\PluginCore\CoreBootstrap
     CoreContracts/      -> Hexa\PluginCore\CoreContracts
     CorePackageUpdates/ -> Hexa\PluginCore\CorePackageUpdates
@@ -37,10 +38,12 @@ hexa-wordpress-plugin-core/
     CredentialVault/    -> Hexa\PluginCore\CredentialVault
     DatabaseCleanup/    -> Hexa\PluginCore\DatabaseCleanup
     FieldStructures/    -> Hexa\PluginCore\FieldStructures
+    FrontendForms/      -> Hexa\PluginCore\FrontendForms
     FaqSets/            -> Hexa\PluginCore\FaqSets
     GettingStartedChecklist/
                         -> Hexa\PluginCore\GettingStartedChecklist
     LogFiles/           -> Hexa\PluginCore\LogFiles
+    MediaUploads/       -> Hexa\PluginCore\MediaUploads
     ObjectCache/        -> Hexa\PluginCore\ObjectCache
     PluginChecks/       -> Hexa\PluginCore\PluginChecks
     PluginProvisioning/ -> Hexa\PluginCore\PluginProvisioning
@@ -73,6 +76,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `AcfFieldFactory`: reusable ACF field array factories for host field-group registrations.
 - `ActivityLog`: shared activity log records, storage modes, and expandable dark log renderer.
 - `BrandColors`: shared HWS Base Tools brand color readers, hex normalization, RGB conversion, and color-control payloads.
+- `BrandProfiles`: normalized domain, identity, logo, color, and support-email values for reusable public experiences.
 - `CoreBootstrap`: consistent setup/init protocol for loading this core in a host plugin.
 - `CoreContracts`: interfaces that host plugins and core modules must follow.
 - `CorePackageUpdates`: compares and updates the vendored Hexa WordPress Plugin Core package.
@@ -81,9 +85,11 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `CredentialVault`: encrypted API-key/secret storage, masking, and credential field examples.
 - `DatabaseCleanup`: guarded provider-backed cleanup sessions, per-task cleanup, per-table optimization, pre/post provider state restoration, and live AJAX progress.
 - `FieldStructures`: reusable displays and status checks for ACF groups, custom post types, taxonomies, and option-backed feature structures.
+- `FrontendForms`: canonical public field schemas plus WordPress-safe WYSIWYG normalization and plain-text projection.
 - `FaqSets`: shared FAQ set sanitizing, item normalization, primary-set resolution, safe answer links, FAQPage schema, and reusable list or accordion output.
 - `GettingStartedChecklist`: reusable plugin startup/onboarding checklist UI, collapsible parent steps, typed step/subtask registration, guarded AJAX execution, sequential subtask processing, request metadata payloads, spinner/check/X states, callback result normalization, reusable destructive sample runner, deleted-post/deleted-file reports, image preview report assets, and collapsed dark technical activity logs.
 - `LogFiles`: shared error-log source definitions, tail readers, classifiers, search/highlight UI, and renderers.
+- `MediaUploads`: reusable image MIME, extension, and size policy plus guarded WordPress Media Library storage.
 - `ObjectCache`: provider-specific object-cache status and activation adapters, including verified LiteSpeed Redis checks.
 - `PluginChecks`: shared required-plugin definitions, status checks, reusable collapsible plugin inventory tables, presence-based green/red Font Awesome SVG title indicators, Required/Optional badges, AJAX install/activate/deactivate/delete actions, subtle secondary row controls, update-cache refresh, and activity-log UI.
 - `PluginProvisioning`: shared plugin discovery, status checks, WordPress.org installs, GitHub ZIP installs, folder normalization, and activation.
@@ -180,6 +186,9 @@ Before adding implementations in another Codex or Claude chat, read:
 - `docs/field-structures.md`
 - `docs/faq-sets.md`
 - `docs/brand-colors.md`
+- `docs/brand-profiles.md`
+- `docs/frontend-forms.md`
+- `docs/media-uploads.md`
 - `docs/snippet-registry.md`
 - the namespace-specific doc for the folder being changed
 
@@ -243,6 +252,8 @@ Version 0.19.52 adds CoreUi::collection_filter() for searchable admin-card colle
 Version 0.19.53 also initializes collection filters after DOMContentLoaded so first-render panels work before any AJAX navigation.
 
 Version 0.19.54 adds an optional host-selected text selector so shared logs and diagnostics do not create false search matches.
+
+Version 0.19.77 adds reusable public brand profiles, canonical front-end field schemas, WordPress-safe WYSIWYG values, and guarded image upload policies/Media Library storage for branded host plugins.
 
 Version 0.19.76 gives the shared template controls plain-language Original Template, site-value, and custom-value labels. Typography inheritance toggles align consistently on the left, and inherited editors are disabled and visibly muted while the toggle remains operable.
 

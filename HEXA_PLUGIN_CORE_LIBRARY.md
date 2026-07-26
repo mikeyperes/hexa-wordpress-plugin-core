@@ -22,6 +22,7 @@ Do not rename these.
 src/ActivityLog/        Hexa\PluginCore\ActivityLog
 src/AcfFieldFactory/    Hexa\PluginCore\AcfFieldFactory
 src/BrandColors/        Hexa\PluginCore\BrandColors
+src/BrandProfiles/      Hexa\PluginCore\BrandProfiles
 src/CoreBootstrap/      Hexa\PluginCore\CoreBootstrap
 src/CoreContracts/      Hexa\PluginCore\CoreContracts
 src/CorePackageUpdates/ Hexa\PluginCore\CorePackageUpdates
@@ -30,10 +31,12 @@ src/ContentCleanup/     Hexa\PluginCore\ContentCleanup
 src/CredentialVault/    Hexa\PluginCore\CredentialVault
 src/DatabaseCleanup/    Hexa\PluginCore\DatabaseCleanup
 src/FieldStructures/    Hexa\PluginCore\FieldStructures
+src/FrontendForms/      Hexa\PluginCore\FrontendForms
 src/FaqSets/            Hexa\PluginCore\FaqSets
 src/GettingStartedChecklist/
                         Hexa\PluginCore\GettingStartedChecklist
 src/LogFiles/           Hexa\PluginCore\LogFiles
+src/MediaUploads/       Hexa\PluginCore\MediaUploads
 src/ObjectCache/        Hexa\PluginCore\ObjectCache
 src/PluginChecks/       Hexa\PluginCore\PluginChecks
 src/PluginProvisioning/ Hexa\PluginCore\PluginProvisioning
@@ -54,6 +57,14 @@ src/WpAdminTabs/        Hexa\PluginCore\WpAdminTabs
 src/WpConfigFile/       Hexa\PluginCore\WpConfigFile
 src/WpCronTasks/        Hexa\PluginCore\WpCronTasks
 ```
+
+## Public Brand And Form Primitives
+
+Use `BrandProfiles\BrandProfile` to normalize the domain, display name, HTTPS logo, primary/accent colors, and support email for a public branded surface. Hosts own persistence and domain selection; never put product catalogs or payment IDs in Core.
+
+Use `FrontendForms\FieldSchema` for the canonical public field contract and `FrontendForms\RichTextValue` for WordPress-safe WYSIWYG storage plus plain-text projections. Hosts own the actual fields, validation messages, rendering, and submission workflow.
+
+Use `MediaUploads\ImageUploadPolicy` and `MediaUploads\WordPressImageUploader` for JPEG, PNG, and WEBP uploads. The host must verify its nonce and capability before storage and remains responsible for attachment association and retention.
 
 ## UI Components
 
