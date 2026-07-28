@@ -869,6 +869,8 @@ Namespace: Hexa\PluginCore\SchemaTools
 
 Classes: SchemaGraph, SchemaDocumentRenderer, SchemaInjector, SchemaDashboardRenderer.
 
+`SchemaGraph::web_url()` rejects wrong-shaped field values and returns only HTTP(S) URLs. Hosts should continue to later field sources when it returns an empty string. `SchemaGraph::sanitize_urls()` is the final fail-closed guard for URL-range properties, while `SchemaGraph::validation_issues()` exposes semantic property paths for tests and reports. Valid URL lists, `Role` values for `url`, and structured policy nodes are preserved.
+
 Host plugins build their own schema objects and hand the result to Core for graph cleanup, duplicate-node merging, safe JSON-LD rendering, and one-shot hook output. Do not move domain-specific Person, Organization, Publication, Profile, or Article mappings into Core. See `docs/schema-tools.md` and test with `tests/schema-document.php`.
 
 ## Taxonomies
@@ -1503,6 +1505,8 @@ Primary classes:
 SchemaPageScanner
 SchemaScanRenderer
 ```
+
+The scanner reports syntactically invalid JSON separately from semantic property failures. Each semantic issue includes its JSON-LD block number and property path, preventing nonempty arrays or unrelated settings groups from passing URL checks.
 
 ```php
 use Hexa\PluginCore\SchemaDetection\SchemaPageScanner;
