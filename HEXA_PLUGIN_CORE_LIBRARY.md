@@ -87,6 +87,8 @@ Use `CoreUi::toggle()` for checkbox-style toggles. Core clips the hidden checkbo
 
 Use `CoreUi::detail_card()` for nested expandable/collapsible subcards inside a parent tool section. It is meant for descriptions, rule explanations, scan-location lists, and other supporting details that should not dominate the page on load.
 
+Use `MediaGalleryDetailsRenderer::render()` when a host-owned WordPress or ACF image gallery needs a collapsed details panel. Core lists the full URL and every generated image size, provides selectable media rows, opens URL links in a new tab, and uses `DynamicButton` for per-URL clipboard feedback. The host owns field registration and passes the saved gallery value into the renderer.
+
 Use CoreUi::collection_filter() for a client-side search control above a repeated card collection. Give every top-level item a dedicated class through the CoreUi::collapsible() class argument; do not target every nested Core section.
 
 An optional group selector hides headings whose groups contain no matches. Core owns visible/total reporting, clear and Escape behavior, empty results, initial setup, and AJAX host-tab reinitialization.

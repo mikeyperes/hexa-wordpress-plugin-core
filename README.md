@@ -79,7 +79,11 @@ Version 1.1.3 separates the complete WordPress/ACF entity field inventory into a
 
 Version 1.1.4 adds an opt-in unconfigured website-type state, an intentional empty primary-entity presentation, and reliable hidden-state styling for empty Smart Search selections.
 
+Version 1.1.5 adds fault-tolerant schema URL normalization and reports invalid schema URLs without breaking page output or scans.
+
 Version 1.1.6 adds reusable standalone schema-node normalization so host plugins can keep every top-level JSON-LD entity independently detectable while preserving typed author, publisher, copyright-holder, and image summaries.
+
+Version 1.1.7 adds `MediaGalleryDetailsRenderer`, a host-neutral collapsed image-details panel with selectable attachments, full and generated-size URLs, new-tab links, and shared dynamic clipboard buttons.
 
 ## Schema Tools
 
@@ -124,7 +128,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `SystemEnvironment`: safe constants, INI, shell wrappers, size parsing, CPU/memory detection, and byte formatting.
 - `Taxonomies`: reusable taxonomy definitions, callback-backed registration, and shared reference UI for host-owned editorial taxonomies.
 - `WpAdminUiCleanup`: shared admin UI cleanup definitions, AJAX toggles, target-screen CSS/JS, postbox hide/collapse behavior, and footer filters.
-- `WpAdminComponents`: shared visual primitives such as cards, subcards, buttons, pills, tooltips, collapsible sections, color controls, font-family controls, and scoped CSS override editors and references.
+- `WpAdminComponents`: shared visual primitives such as cards, subcards, buttons, pills, tooltips, collapsible sections, selectable media gallery details, color controls, font-family controls, and scoped CSS override editors and references.
 - `WpAdminAjax`: WordPress admin-AJAX nonce, capability, request parsing, action registration, and handler guards.
 - `WpAdminTabs`: admin tab definitions, registry, host hook integration, and the automatic Hexa core documentation tab.
 - `WpConfigFile`: safe `wp-config.php` constant and `ini_set()` reads/writes with validation and rollback backup handling.
