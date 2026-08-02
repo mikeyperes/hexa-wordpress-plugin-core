@@ -77,4 +77,31 @@ template_selection_assert( str_contains( $markup, 'pointer-events:none' ) && str
 template_selection_assert( str_contains( $markup, '<a class="button" href="#preview-b">View live</a>' ), 'Hosts must be able to provide a separate live-preview action.' );
 template_selection_assert( ! str_contains( (string) file_get_contents( $root . '/src/WpAdminComponents/TemplateSelectionControl.php' ), 'smp-' ), 'The reusable control must remain host-neutral.' );
 
-echo "PASS: TemplateSelectionControl owns the reusable three-column visual selector and unstyled mode.\n";
+ob_start();
+$toggle_markup = TemplateSelectionControl::render(
+    [
+        'id'             => 'full-width-design',
+        'name'           => 'full_width_template',
+        'value'          => 'custom',
+        'columns'        => 1,
+        'custom_control' => 'toggle',
+        'custom'         => [
+            'label'              => 'No plugin design',
+            'toggle_label'       => 'No plugin design',
+            'toggle_description' => 'Disable every template choice.',
+        ],
+        'templates'      => [
+            'card-a' => [ 'label' => 'Card A', 'preview_html' => '<div>A</div>' ],
+            'card-b' => [ 'label' => 'Card B', 'preview_html' => '<div>B</div>' ],
+        ],
+    ]
+);
+ob_end_clean();
+
+preg_match_all( '/data-hpc-template-selection-option/', $toggle_markup, $toggle_cards );
+template_selection_assert( 2 === count( $toggle_cards[0] ), 'Toggle mode must keep the no-design state above the template grid instead of rendering it as a card.' );
+template_selection_assert( str_contains( $toggle_markup, 'data-hpc-template-custom-toggle="1"' ) && str_contains( $toggle_markup, 'data-hpc-template-custom-input' ), 'Toggle mode must bind the visible Core toggle to the host template value.' );
+template_selection_assert( str_contains( $toggle_markup, 'Disable every template choice.' ) && str_contains( $toggle_markup, 'is-custom-mode' ) && str_contains( $toggle_markup, 'aria-disabled="true"' ), 'A saved no-design state must clearly disable the visual choices.' );
+template_selection_assert( str_contains( $markup, 'option.disabled=custom' ) && str_contains( $markup, 'data-hpc-template-selection-last' ), 'Core must disable template radios and restore the previous design when no-design mode is turned off.' );
+
+echo "PASS: TemplateSelectionControl owns reusable visual grids and a top-level no-design toggle mode.\n";

@@ -92,7 +92,7 @@ Version 1.1.9 adds a reusable ACF gallery-details module with live native-galler
 
 Version 1.2.0 adds an automatically registered static-front-page query invariant plus reusable main-or-explicit query eligibility predicates. Hexa query callbacks can reject the exact configured front-page main query, suppressed filters, background requests, and unmarked secondary loops before loading settings or attaching SQL filters, while Core repairs later post-type or page-ID mutations as defense in depth. The native search engine now uses one idempotent weak-state SQL dispatcher so duplicate preparation cannot stack closures or retain abandoned query objects.
 
-Version 2.1.0 adds `TemplateSelectionControl`, the shared accessible three-column visual selector for frontend template libraries. It owns stable scaled preview viewports, selected-state behavior, responsive layout, custom/no-design mode, host save hooks, and AJAX-tab reinitialization while host plugins retain their renderers and persistence.
+Version 2.1.1 extends `TemplateSelectionControl` with a top-level no-design toggle that disables template choices and restores the previous choice when switched off. The shared accessible selector still owns configurable visual grids, stable scaled preview viewports, selected-state behavior, responsive layout, host save hooks, and AJAX-tab reinitialization while host plugins retain their renderers and persistence.
 
 ## Schema Tools
 

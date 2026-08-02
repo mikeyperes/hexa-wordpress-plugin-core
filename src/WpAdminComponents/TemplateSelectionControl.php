@@ -19,6 +19,7 @@ final class TemplateSelectionControl {
      *     templates?:array<string,array<string,mixed>>,
      *     custom?:array<string,mixed>|false,
      *     custom_value?:string,
+     *     custom_control?:string,
      *     input_class?:string,
      *     input_data?:array<string,scalar>,
      *     preview_height?:int,
@@ -34,6 +35,7 @@ final class TemplateSelectionControl {
         $description = (string) ( $args['description'] ?? '' );
         $templates   = self::templates( (array) ( $args['templates'] ?? [] ) );
         $custom      = self::custom_option( $args );
+        $custom_control = self::custom_control( $args );
 
         if ( [] === $templates && null === $custom ) {
             return '';
@@ -48,8 +50,13 @@ final class TemplateSelectionControl {
             $selected = (string) array_key_first( $templates );
         }
 
+        $custom_as_toggle  = null !== $custom && 'toggle' === $custom_control;
+        $custom_is_selected = $custom_as_toggle && $selected === $custom['value'];
         $input_class   = self::classes( 'hpc-template-selection-input ' . (string) ( $args['input_class'] ?? '' ) );
         $control_class = self::classes( 'hpc-template-selection ' . (string) ( $args['class'] ?? '' ) );
+        if ( $custom_is_selected ) {
+            $control_class = self::classes( $control_class . ' is-custom-mode' );
+        }
         $input_data    = self::data_attributes( (array) ( $args['input_data'] ?? [] ) );
         $columns       = min( 4, max( 1, (int) ( $args['columns'] ?? 3 ) ) );
         $height        = min( 420, max( 140, (int) ( $args['preview_height'] ?? 210 ) ) );
@@ -68,6 +75,7 @@ final class TemplateSelectionControl {
             data-hpc-template-selection
             data-hpc-template-selection-name="<?php echo esc_attr( $name ); ?>"
             data-hpc-template-selection-value="<?php echo esc_attr( $selected ); ?>"
+            data-hpc-template-custom-control="<?php echo esc_attr( $custom_control ); ?>"
         >
             <header class="hpc-template-selection-head">
                 <div>
@@ -78,11 +86,45 @@ final class TemplateSelectionControl {
                 </div>
                 <span class="hpc-template-selection-current">Selected: <strong data-hpc-template-selection-current><?php echo esc_html( $selected_text ); ?></strong></span>
             </header>
-            <div class="hpc-template-selection-grid" role="radiogroup" aria-label="<?php echo esc_attr( $title ); ?>">
+            <?php if ( $custom_as_toggle ) : ?>
+                <div class="hpc-template-selection-custom-bar">
+                    <div>
+                        <?php echo CoreUi::toggle(
+                            $name . '_custom',
+                            $custom_is_selected,
+                            (string) $custom['toggle_label'],
+                            [
+                                'id'          => $id . '-custom-toggle',
+                                'class'       => 'hpc-template-selection-custom-toggle-control',
+                                'input_class' => 'hpc-template-selection-custom-toggle',
+                                'data'        => [ 'hpc_template_custom_toggle' => '1' ],
+                            ]
+                        ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        <p><?php echo esc_html( (string) $custom['toggle_description'] ); ?></p>
+                    </div>
+                    <input
+                        id="<?php echo esc_attr( $id . '-custom-choice' ); ?>"
+                        class="<?php echo esc_attr( self::classes( $input_class . ' hpc-template-selection-custom-input' ) ); ?>"
+                        type="radio"
+                        name="<?php echo esc_attr( $name ); ?>"
+                        value="<?php echo esc_attr( (string) $custom['value'] ); ?>"
+                        data-hpc-template-selection-input
+                        data-hpc-template-custom-input
+                        data-template-label="<?php echo esc_attr( (string) $custom['label'] ); ?>"
+                        <?php echo $input_data . self::data_attributes( (array) $custom['data'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                        <?php checked( $custom_is_selected ); ?>
+                        hidden
+                    >
+                </div>
+            <?php endif; ?>
+            <div class="hpc-template-selection-grid" role="radiogroup" aria-label="<?php echo esc_attr( $title ); ?>"<?php echo $custom_is_selected ? ' aria-disabled="true"' : ''; ?>>
                 <?php foreach ( $templates as $value => $template ) :
                     $option_id     = self::clean_id( $id . '-' . $value );
                     $is_selected   = $selected === $value;
                     $is_custom     = ! empty( $template['custom'] );
+                    if ( $custom_as_toggle && $is_custom ) {
+                        continue;
+                    }
                     $option_height = min( 420, max( 140, (int) ( $template['preview_height'] ?? $height ) ) );
                     $option_width  = min( 1800, max( 320, (int) ( $template['preview_width'] ?? $width ) ) );
                     $option_data   = self::data_attributes( (array) ( $template['data'] ?? [] ) );
@@ -99,6 +141,7 @@ final class TemplateSelectionControl {
                                 data-template-label="<?php echo esc_attr( (string) $template['label'] ); ?>"
                                 <?php echo $input_data . $option_data; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 <?php checked( $is_selected ); ?>
+                                <?php echo $custom_is_selected ? ' disabled' : ''; ?>
                             >
                             <span class="hpc-template-selection-card-head">
                                 <span class="hpc-template-selection-radio" aria-hidden="true"></span>
@@ -183,7 +226,13 @@ final class TemplateSelectionControl {
             'preview_width'  => isset( $custom['preview_width'] ) ? (int) $custom['preview_width'] : null,
             'data'           => isset( $custom['data'] ) && is_array( $custom['data'] ) ? $custom['data'] : [],
             'custom'         => true,
+            'toggle_label'   => (string) ( $custom['toggle_label'] ?? 'No plugin design' ),
+            'toggle_description' => (string) ( $custom['toggle_description'] ?? $custom['description'] ?? 'Disable the plugin design and use your theme or page builder instead.' ),
         ];
+    }
+
+    private static function custom_control( array $args ): string {
+        return 'toggle' === sanitize_key( (string) ( $args['custom_control'] ?? 'card' ) ) ? 'toggle' : 'card';
     }
 
     private static function data_attributes( array $attributes ): string {
@@ -233,7 +282,9 @@ final class TemplateSelectionControl {
 .hpc-template-selection-head{align-items:flex-start;border-bottom:1px solid #e4e9f0;display:flex;gap:18px;justify-content:space-between;padding:16px 18px}
 .hpc-template-selection-head h3{font-size:16px;letter-spacing:0;margin:0 0 5px}.hpc-template-selection-head p{color:#64748b;line-height:1.5;margin:0;max-width:76ch}
 .hpc-template-selection-current{background:#eef3ff;border:1px solid #d7e2ff;border-radius:999px;color:#2944ad;flex:0 0 auto;font-size:12px;font-weight:700;padding:7px 10px}
+.hpc-template-selection-custom-bar{align-items:center;background:#fbfcfe;border-bottom:1px solid #e4e9f0;display:flex;justify-content:space-between;padding:14px 18px}.hpc-template-selection-custom-bar>div{display:grid;gap:5px}.hpc-template-selection-custom-bar .hpc-toggle{font-weight:800;margin:0}.hpc-template-selection-custom-bar p{color:#64748b;font-size:12px;line-height:1.45;margin:0 0 0 44px;max-width:76ch}
 .hpc-template-selection-grid{display:grid;gap:14px;grid-template-columns:repeat(var(--hpc-template-columns,3),minmax(0,1fr));padding:16px}
+.hpc-template-selection.is-custom-mode .hpc-template-selection-grid{background:#f8fafc;opacity:.48;pointer-events:none}.hpc-template-selection.is-custom-mode .hpc-template-selection-current{background:#f1f3f5;border-color:#d9dee5;color:#475569}
 .hpc-template-selection-card{background:#fff;border:1px solid #d8dee8;border-radius:8px;display:flex;flex-direction:column;min-width:0;overflow:hidden;transition:border-color .15s,box-shadow .15s}
 .hpc-template-selection-card:hover{border-color:#aebbd0}.hpc-template-selection-card.is-selected{border-color:#3157d5;box-shadow:0 0 0 1px #3157d5}
 .hpc-template-selection-label{cursor:pointer;display:flex;flex:1 1 auto;flex-direction:column;margin:0;min-width:0}.hpc-template-selection-input{clip:rect(0 0 0 0);height:1px;margin:-1px;overflow:hidden;position:absolute;width:1px}
@@ -246,7 +297,7 @@ final class TemplateSelectionControl {
 .hpc-template-selection-custom-preview{align-items:center;color:#475569;display:flex;flex-direction:column;height:100%;justify-content:center;padding:22px;text-align:center}.hpc-template-selection-custom-preview svg{color:#3157d5;height:36px;margin-bottom:10px;width:36px}.hpc-template-selection-custom-preview strong{color:#172033;font-size:14px}.hpc-template-selection-custom-preview small{font-size:12px;line-height:1.45;margin-top:5px;max-width:30ch}
 .hpc-template-selection-actions{align-items:center;background:#fbfcfe;border-top:1px solid #e9edf3;display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding:10px 12px}.hpc-template-selection-actions .button,.hpc-template-selection-actions .hpc-button{margin:0}
 @media(max-width:1100px){.hpc-template-selection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:782px){.hpc-template-selection-head{display:grid}.hpc-template-selection-current{justify-self:start}.hpc-template-selection-grid{grid-template-columns:1fr}.hpc-template-selection-card-head{min-height:0}}
+@media(max-width:782px){.hpc-template-selection-head{display:grid}.hpc-template-selection-current{justify-self:start}.hpc-template-selection-custom-bar p{margin-left:0}.hpc-template-selection-grid{grid-template-columns:1fr}.hpc-template-selection-card-head{min-height:0}}
 </style>
 <script id="hpc-template-selection-script">
 (function(){
@@ -266,7 +317,13 @@ final class TemplateSelectionControl {
         var input=control.querySelector("[data-hpc-template-selection-input]:checked");
         if(!input)return;
         var value=input.value||"",label=input.getAttribute("data-template-label")||value;
+        var custom=input.hasAttribute("data-hpc-template-custom-input"),toggle=control.querySelector("[data-hpc-template-custom-toggle]"),grid=control.querySelector(".hpc-template-selection-grid");
         control.setAttribute("data-hpc-template-selection-value",value);
+        if(!custom)control.setAttribute("data-hpc-template-selection-last",value);
+        control.classList.toggle("is-custom-mode",custom);
+        if(toggle)toggle.checked=custom;
+        if(grid){if(custom)grid.setAttribute("aria-disabled","true");else grid.removeAttribute("aria-disabled");}
+        control.querySelectorAll("[data-hpc-template-selection-input]:not([data-hpc-template-custom-input])").forEach(function(option){option.disabled=custom;});
         control.querySelectorAll("[data-hpc-template-selection-option]").forEach(function(card){card.classList.toggle("is-selected",!!card.querySelector("[data-hpc-template-selection-input]:checked"));});
         var current=control.querySelector("[data-hpc-template-selection-current]");
         if(current)current.textContent=label;
@@ -278,7 +335,28 @@ final class TemplateSelectionControl {
     }
     var observer=window.ResizeObserver?new ResizeObserver(function(entries){entries.forEach(function(entry){fit(entry.target);});}):null;
     function init(root){(root||document).querySelectorAll("[data-hpc-template-selection]").forEach(function(control){sync(control,false);control.querySelectorAll("[data-hpc-template-preview]").forEach(function(viewport){if(observer)observer.observe(viewport);});});}
-    document.addEventListener("change",function(event){var input=event.target.closest("[data-hpc-template-selection-input]");if(input)sync(input.closest("[data-hpc-template-selection]"),true);});
+    document.addEventListener("change",function(event){
+        var toggle=event.target.closest("[data-hpc-template-custom-toggle]");
+        if(toggle){
+            var control=toggle.closest("[data-hpc-template-selection]"),custom=control&&control.querySelector("[data-hpc-template-custom-input]");
+            if(!control||!custom)return;
+            if(toggle.checked){
+                var active=control.querySelector("[data-hpc-template-selection-input]:checked:not([data-hpc-template-custom-input])");
+                if(active)control.setAttribute("data-hpc-template-selection-last",active.value||"");
+                custom.checked=true;
+                custom.dispatchEvent(new Event("change",{bubbles:true}));
+            }else{
+                var choices=control.querySelectorAll("[data-hpc-template-selection-input]:not([data-hpc-template-custom-input])");
+                choices.forEach(function(choice){choice.disabled=false;});
+                var last=control.getAttribute("data-hpc-template-selection-last")||"",fallback=null;
+                choices.forEach(function(choice){if(!fallback&&choice.value===last)fallback=choice;});
+                if(!fallback)fallback=choices[0]||null;
+                if(fallback){fallback.checked=true;fallback.dispatchEvent(new Event("change",{bubbles:true}));}
+            }
+            return;
+        }
+        var input=event.target.closest("[data-hpc-template-selection-input]");if(input)sync(input.closest("[data-hpc-template-selection]"),true);
+    });
     document.addEventListener("hexa-core-host-tab-loaded",function(event){init(event.detail&&event.detail.panel?event.detail.panel:document);});
     window.addEventListener("resize",function(){document.querySelectorAll("[data-hpc-template-preview]").forEach(fit);});
     window.hexaTemplateSelection={init:init,sync:sync,fit:fit};

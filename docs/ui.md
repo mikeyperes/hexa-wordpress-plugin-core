@@ -99,7 +99,13 @@ echo TemplateSelectionControl::render(
         'name'    => 'profile_card_template',
         'value'   => $settings['profile_card_template'] ?? 'compact',
         'title'   => 'Profile card design',
-        'columns' => 3,
+        'columns' => 1,
+        'custom_control' => 'toggle',
+        'custom' => [
+            'label'              => 'No plugin design',
+            'toggle_label'       => 'No plugin design',
+            'toggle_description' => 'Disable the template choices and provide your own markup and styles.',
+        ],
         'templates' => [
             'compact' => [
                 'label'        => 'Compact',
@@ -112,7 +118,7 @@ echo TemplateSelectionControl::render(
 );
 ```
 
-Core renders all choices in a three-column desktop grid, adds the built-in "I'm going to design it myself" option, and scales trusted host preview markup inside fixed-height noninteractive viewports. Hosts own persistence and frontend behavior. Listen for the bubbling `hexa-template-selection-change` event to save a choice. Custom mode must be handled by the host by omitting automatic markup, shortcode output, and plugin styling unless an explicit named template is requested.
+Core renders the requested one-to-four-column desktop grid and scales trusted host preview markup inside fixed-height noninteractive viewports. The default custom/no-design state is a choice card; set `custom_control` to `toggle` to put it above the grid, disable every template choice while active, and restore the previous selection when switched off. Hosts own persistence and frontend behavior. Listen for the bubbling `hexa-template-selection-change` event to save a choice. Custom mode must be handled by the host by omitting automatic markup, shortcode output, and plugin styling unless an explicit named template is requested.
 
 Scoped CSS editor or reference example:
 
