@@ -92,6 +92,8 @@ Version 1.1.9 adds a reusable ACF gallery-details module with live native-galler
 
 Version 1.2.0 adds an automatically registered static-front-page query invariant plus reusable main-or-explicit query eligibility predicates. Hexa query callbacks can reject the exact configured front-page main query, suppressed filters, background requests, and unmarked secondary loops before loading settings or attaching SQL filters, while Core repairs later post-type or page-ID mutations as defense in depth. The native search engine now uses one idempotent weak-state SQL dispatcher so duplicate preparation cannot stack closures or retain abandoned query objects.
 
+Version 2.1.0 adds `TemplateSelectionControl`, the shared accessible three-column visual selector for frontend template libraries. It owns stable scaled preview viewports, selected-state behavior, responsive layout, custom/no-design mode, host save hooks, and AJAX-tab reinitialization while host plugins retain their renderers and persistence.
+
 ## Schema Tools
 
 The 1.x line includes reusable schema graph helpers and a generic schema dashboard renderer. Host plugins can build their own schema objects, normalize independently detectable graph nodes with `SchemaGraph::standalone_nodes()`, expose debug JSON, show ideal-vs-actual graph examples, provide validator links, render collapsed shortcode cards, and pass plugin-specific schema action panels through HexaWP Core instead of duplicating dashboard UI.
@@ -136,7 +138,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `SystemEnvironment`: safe constants, INI, shell wrappers, size parsing, CPU/memory detection, and byte formatting.
 - `Taxonomies`: reusable taxonomy definitions, callback-backed registration, and shared reference UI for host-owned editorial taxonomies.
 - `WpAdminUiCleanup`: shared admin UI cleanup definitions, AJAX toggles, target-screen CSS/JS, postbox hide/collapse behavior, and footer filters.
-- `WpAdminComponents`: shared visual primitives such as cards, subcards, buttons, pills, tooltips, collapsible sections, selectable media gallery details, color controls, font-family controls, and scoped CSS override editors and references.
+- `WpAdminComponents`: shared visual primitives such as cards, subcards, buttons, pills, tooltips, collapsible sections, three-column visual template selectors, selectable media gallery details, color controls, font-family controls, and scoped CSS override editors and references.
 - `WpAdminAjax`: WordPress admin-AJAX nonce, capability, request parsing, action registration, and handler guards.
 - `WpAdminTabs`: admin tab definitions, registry, host hook integration, and the automatic Hexa core documentation tab.
 - `WpConfigFile`: safe `wp-config.php` constant and `ini_set()` reads/writes with validation and rollback backup handling.

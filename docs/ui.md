@@ -31,6 +31,7 @@ DetailedColorPicker
 FontFamilyControl
 TypographyPreservationControl
 TypographyControl
+TemplateSelectionControl
 ```
 
 ## Components
@@ -52,6 +53,7 @@ DetailedColorPicker::render()
 FontFamilyControl::render()
 TypographyPreservationControl::render()
 TypographyControl::render()
+TemplateSelectionControl::render()
 ```
 
 ## Example
@@ -85,6 +87,32 @@ echo MediaGalleryDetailsRenderer::render(
 ```
 
 The renderer accepts attachment IDs, ACF image arrays, or attachment objects. It lists the full image and every generated intermediate size, renders each URL as a selectable new-tab link, uses `DynamicButton` for clipboard feedback, and provides per-image plus select-all controls. Hosts own the ACF field and attach the renderer from the appropriate field hook.
+
+Visual template selector example:
+
+```php
+use Hexa\PluginCore\WpAdminComponents\TemplateSelectionControl;
+
+echo TemplateSelectionControl::render(
+    [
+        'id'      => 'profile-card-template',
+        'name'    => 'profile_card_template',
+        'value'   => $settings['profile_card_template'] ?? 'compact',
+        'title'   => 'Profile card design',
+        'columns' => 3,
+        'templates' => [
+            'compact' => [
+                'label'        => 'Compact',
+                'description'  => 'A restrained horizontal card.',
+                'preview_html' => $renderer->render_preview( 'compact' ),
+            ],
+        ],
+        'input_class' => 'plugin-setting',
+    ]
+);
+```
+
+Core renders all choices in a three-column desktop grid, adds the built-in "I'm going to design it myself" option, and scales trusted host preview markup inside fixed-height noninteractive viewports. Hosts own persistence and frontend behavior. Listen for the bubbling `hexa-template-selection-change` event to save a choice. Custom mode must be handled by the host by omitting automatic markup, shortcode output, and plugin styling unless an explicit named template is requested.
 
 Scoped CSS editor or reference example:
 
@@ -125,4 +153,4 @@ The title slug is used when `query_key` is omitted. Set `query_state => false` o
 
 ## Rule
 
-If a host plugin needs cards, subcards, collapsibles, tooltips, status pills, copy buttons, selectable media gallery details, scoped CSS override editors and references, brand-aware isolated color controls, combined typography fields, typography preservation, saved color palettes, or Elementor palette detection, add the missing parameter or helper here first.
+If a host plugin needs cards, subcards, collapsibles, tooltips, status pills, copy buttons, visual template selection, selectable media gallery details, scoped CSS override editors and references, brand-aware isolated color controls, combined typography fields, typography preservation, saved color palettes, or Elementor palette detection, add the missing parameter or helper here first.
