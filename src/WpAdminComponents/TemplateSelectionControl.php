@@ -58,10 +58,11 @@ final class TemplateSelectionControl {
             $control_class = self::classes( $control_class . ' is-custom-mode' );
         }
         $input_data    = self::data_attributes( (array) ( $args['input_data'] ?? [] ) );
-        $columns       = min( 4, max( 1, (int) ( $args['columns'] ?? 3 ) ) );
-        $height        = min( 420, max( 140, (int) ( $args['preview_height'] ?? 210 ) ) );
-        $width         = min( 1800, max( 320, (int) ( $args['preview_width'] ?? 720 ) ) );
-        $selected_text = (string) ( $templates[ $selected ]['label'] ?? $selected );
+        $columns        = min( 4, max( 1, (int) ( $args['columns'] ?? 3 ) ) );
+        $tablet_columns = min( 2, $columns );
+        $height         = min( 420, max( 140, (int) ( $args['preview_height'] ?? 210 ) ) );
+        $width          = min( 1800, max( 320, (int) ( $args['preview_width'] ?? 720 ) ) );
+        $selected_text  = (string) ( $templates[ $selected ]['label'] ?? $selected );
 
         CoreUi::render_assets();
 
@@ -71,7 +72,7 @@ final class TemplateSelectionControl {
         <section
             id="<?php echo esc_attr( $id ); ?>"
             class="<?php echo esc_attr( $control_class ); ?>"
-            style="--hpc-template-columns:<?php echo esc_attr( (string) $columns ); ?>;--hpc-template-preview-height:<?php echo esc_attr( (string) $height ); ?>px"
+            style="--hpc-template-columns:<?php echo esc_attr( (string) $columns ); ?>;--hpc-template-tablet-columns:<?php echo esc_attr( (string) $tablet_columns ); ?>;--hpc-template-preview-height:<?php echo esc_attr( (string) $height ); ?>px"
             data-hpc-template-selection
             data-hpc-template-selection-name="<?php echo esc_attr( $name ); ?>"
             data-hpc-template-selection-value="<?php echo esc_attr( $selected ); ?>"
@@ -296,7 +297,7 @@ final class TemplateSelectionControl {
 .hpc-template-selection-preview-canvas{display:block;left:0;position:absolute;top:0;transform:scale(var(--hpc-template-preview-scale,1));transform-origin:top left}.hpc-template-selection-preview-canvas *{pointer-events:none!important}
 .hpc-template-selection-custom-preview{align-items:center;color:#475569;display:flex;flex-direction:column;height:100%;justify-content:center;padding:22px;text-align:center}.hpc-template-selection-custom-preview svg{color:#3157d5;height:36px;margin-bottom:10px;width:36px}.hpc-template-selection-custom-preview strong{color:#172033;font-size:14px}.hpc-template-selection-custom-preview small{font-size:12px;line-height:1.45;margin-top:5px;max-width:30ch}
 .hpc-template-selection-actions{align-items:center;background:#fbfcfe;border-top:1px solid #e9edf3;display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding:10px 12px}.hpc-template-selection-actions .button,.hpc-template-selection-actions .hpc-button{margin:0}
-@media(max-width:1100px){.hpc-template-selection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1100px){.hpc-template-selection-grid{grid-template-columns:repeat(var(--hpc-template-tablet-columns,2),minmax(0,1fr))}}
 @media(max-width:782px){.hpc-template-selection-head{display:grid}.hpc-template-selection-current{justify-self:start}.hpc-template-selection-custom-bar p{margin-left:0}.hpc-template-selection-grid{grid-template-columns:1fr}.hpc-template-selection-card-head{min-height:0}}
 </style>
 <script id="hpc-template-selection-script">

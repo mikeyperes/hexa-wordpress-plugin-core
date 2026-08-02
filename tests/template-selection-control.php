@@ -102,6 +102,7 @@ preg_match_all( '/data-hpc-template-selection-option/', $toggle_markup, $toggle_
 template_selection_assert( 2 === count( $toggle_cards[0] ), 'Toggle mode must keep the no-design state above the template grid instead of rendering it as a card.' );
 template_selection_assert( str_contains( $toggle_markup, 'data-hpc-template-custom-toggle="1"' ) && str_contains( $toggle_markup, 'data-hpc-template-custom-input' ), 'Toggle mode must bind the visible Core toggle to the host template value.' );
 template_selection_assert( str_contains( $toggle_markup, 'Disable every template choice.' ) && str_contains( $toggle_markup, 'is-custom-mode' ) && str_contains( $toggle_markup, 'aria-disabled="true"' ), 'A saved no-design state must clearly disable the visual choices.' );
+template_selection_assert( str_contains( $toggle_markup, '--hpc-template-columns:1;--hpc-template-tablet-columns:1;' ) && str_contains( $markup, 'repeat(var(--hpc-template-tablet-columns,2)' ), 'A one-column host selector must remain one column at the tablet breakpoint.' );
 template_selection_assert( str_contains( $markup, 'option.disabled=custom' ) && str_contains( $markup, 'data-hpc-template-selection-last' ), 'Core must disable template radios and restore the previous design when no-design mode is turned off.' );
 
 echo "PASS: TemplateSelectionControl owns reusable visual grids and a top-level no-design toggle mode.\n";
