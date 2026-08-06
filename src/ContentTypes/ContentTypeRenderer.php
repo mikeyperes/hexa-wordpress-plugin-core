@@ -36,75 +36,85 @@ final class ContentTypeRenderer {
     /** @param array<string,mixed> $definition */
     private function content_type_card( array $definition ): string {
         $post = $definition['post_type'];
-        $registered = function_exists( 'post_type_exists' ) && post_type_exists( $post['key'] );
         $external = 'external' === $definition['registration_mode'];
         $supports = implode( ', ', (array) ( $post['args']['supports'] ?? [] ) ) ?: 'Default';
         $taxonomies = implode( ', ', array_map( 'esc_html', array_column( $definition['taxonomies'], 'key' ) ) );
-        $meta = '<span class="hpc-content-type-summary-meta">'
-            . $this->status_label( ! empty( $definition['enabled'] ) ? 'Enabled' : 'Disabled', ! empty( $definition['enabled'] ) ? 'success' : 'muted' )
-            . $this->status_label( $registered ? 'Registered' : 'Not registered', $registered ? 'success' : 'warning' )
-            . '<span class="hpc-content-type-summary-key">' . esc_html( $post['key'] ) . '</span>'
-            . '</span>';
+        $header_toggle = CoreUi::toggle(
+            'enabled',
+            ! empty( $definition['enabled'] ),
+            $external ? 'Enable integration' : 'Enable',
+            [
+                'id'    => 'hpc-content-type-enabled-' . $definition['id'],
+                'class' => 'hpc-content-type-enabled hpc-content-type-header-toggle',
+            ]
+        );
+
+        ob_start();
+        ?>
+        <section class="hpc-content-type-block hpc-content-type-cpt-block">
+            <header class="hpc-content-type-block-heading">
+                <h4>CPT settings</h4>
+                <?php if ( '' !== $definition['description'] ) : ?><p><?php echo esc_html( $definition['description'] ); ?></p><?php endif; ?>
+                <?php if ( $external ) : ?><p>The post type is registered by another plugin. The header switch controls only this integration.</p><?php endif; ?>
+            </header>
+
+            <?php if ( $external ) : ?>
+                <input class="hpc-content-type-slug" type="hidden" value="<?php echo esc_attr( $post['rewrite_slug'] ); ?>">
+                <input class="hpc-content-type-singular" type="hidden" value="<?php echo esc_attr( $post['singular'] ); ?>">
+                <input class="hpc-content-type-plural" type="hidden" value="<?php echo esc_attr( $post['plural'] ); ?>">
+            <?php else : ?>
+                <div class="hpc-content-type-cpt-fields">
+                    <h5>Labels and URL</h5>
+                    <label class="hpc-field hpc-content-type-field">
+                        <span>URL slug</span>
+                        <input class="hpc-content-type-slug" type="text" value="<?php echo esc_attr( $post['rewrite_slug'] ); ?>">
+                        <small>The public URL segment. The internal post type key will not change.</small>
+                    </label>
+                    <label class="hpc-field hpc-content-type-field">
+                        <span>Singular label</span>
+                        <input class="hpc-content-type-singular" type="text" value="<?php echo esc_attr( $post['singular'] ); ?>">
+                    </label>
+                    <label class="hpc-field hpc-content-type-field">
+                        <span>Plural label</span>
+                        <input class="hpc-content-type-plural" type="text" value="<?php echo esc_attr( $post['plural'] ); ?>">
+                    </label>
+                </div>
+            <?php endif; ?>
+
+            <details class="hpc-content-type-technical">
+                <summary>CPT technical details</summary>
+                <dl>
+                    <div><dt>Owner</dt><dd><?php echo esc_html( $definition['owner'] ?: 'Host plugin' ); ?></dd></div>
+                    <div><dt>Post type key</dt><dd><span class="hpc-code"><?php echo esc_html( $post['key'] ); ?></span></dd></div>
+                    <div><dt>Archive</dt><dd><?php echo ! empty( $post['args']['has_archive'] ) ? 'Enabled' : 'Disabled'; ?></dd></div>
+                    <div><dt>Supports</dt><dd><?php echo esc_html( $supports ); ?></dd></div>
+                    <?php if ( $external ) : ?><div><dt>Registration</dt><dd>Owned by another plugin</dd></div><?php endif; ?>
+                    <?php if ( '' !== $taxonomies ) : ?><div><dt>Taxonomies</dt><dd><?php echo $taxonomies; ?></dd></div><?php endif; ?>
+                </dl>
+            </details>
+        </section>
+        <?php
+        $cpt_body = (string) ob_get_clean();
+        $cpt_card = CoreUi::collapsible(
+            [
+                'title'       => $post['plural'],
+                'body_html'   => $cpt_body,
+                'meta_html'   => $header_toggle,
+                'open'        => false,
+                'query_state' => false,
+                'class'       => 'hpc-content-type-parent',
+            ]
+        );
 
         ob_start();
         ?>
         <div class="hpc-content-type-form" data-content-type-id="<?php echo esc_attr( $definition['id'] ); ?>">
-            <section class="hpc-content-type-block hpc-content-type-cpt-block">
-                <header class="hpc-content-type-block-heading">
-                    <span class="hpc-content-type-kicker">Parent custom post type</span>
-                    <h4>CPT configuration</h4>
-                    <p>These settings control the parent <span class="hpc-code"><?php echo esc_html( $post['key'] ); ?></span> post type. The ACF field groups attached to it are organized separately below.</p>
-                </header>
+            <?php echo $cpt_card; ?>
 
-                <div class="hpc-content-type-enable-row">
-                    <?php echo CoreUi::toggle( 'enabled', ! empty( $definition['enabled'] ), $external ? 'Enable this plugin integration' : 'Enable ' . $post['plural'], [ 'class' => 'hpc-content-type-enabled' ] ); ?>
-                    <?php if ( '' !== $definition['description'] ) : ?>
-                        <p><?php echo esc_html( $definition['description'] ); ?></p>
-                    <?php endif; ?>
-                    <?php if ( $external ) : ?><p class="hpc-small">The post type is registered by another plugin. This switch controls only this integration.</p><?php endif; ?>
-                </div>
-
-                <?php if ( $external ) : ?>
-                    <input class="hpc-content-type-slug" type="hidden" value="<?php echo esc_attr( $post['rewrite_slug'] ); ?>">
-                    <input class="hpc-content-type-singular" type="hidden" value="<?php echo esc_attr( $post['singular'] ); ?>">
-                    <input class="hpc-content-type-plural" type="hidden" value="<?php echo esc_attr( $post['plural'] ); ?>">
-                <?php else : ?>
-                    <div class="hpc-content-type-cpt-fields">
-                        <h5>Labels and URL</h5>
-                        <label class="hpc-field hpc-content-type-field">
-                            <span>URL slug</span>
-                            <input class="hpc-content-type-slug" type="text" value="<?php echo esc_attr( $post['rewrite_slug'] ); ?>">
-                            <small>The public URL segment. The internal post type key will not change.</small>
-                        </label>
-                        <label class="hpc-field hpc-content-type-field">
-                            <span>Singular label</span>
-                            <input class="hpc-content-type-singular" type="text" value="<?php echo esc_attr( $post['singular'] ); ?>">
-                        </label>
-                        <label class="hpc-field hpc-content-type-field">
-                            <span>Plural label</span>
-                            <input class="hpc-content-type-plural" type="text" value="<?php echo esc_attr( $post['plural'] ); ?>">
-                        </label>
-                    </div>
-                <?php endif; ?>
-
-                <details class="hpc-content-type-technical">
-                    <summary>CPT technical details</summary>
-                    <dl>
-                        <div><dt>Owner</dt><dd><?php echo esc_html( $definition['owner'] ?: 'Host plugin' ); ?></dd></div>
-                        <div><dt>Post type key</dt><dd><span class="hpc-code"><?php echo esc_html( $post['key'] ); ?></span></dd></div>
-                        <div><dt>Archive</dt><dd><?php echo ! empty( $post['args']['has_archive'] ) ? 'Enabled' : 'Disabled'; ?></dd></div>
-                        <div><dt>Supports</dt><dd><?php echo esc_html( $supports ); ?></dd></div>
-                        <?php if ( $external ) : ?><div><dt>Registration</dt><dd>Owned by another plugin</dd></div><?php endif; ?>
-                        <?php if ( '' !== $taxonomies ) : ?><div><dt>Taxonomies</dt><dd><?php echo $taxonomies; ?></dd></div><?php endif; ?>
-                    </dl>
-                </details>
-            </section>
-
-            <section class="hpc-content-type-block hpc-content-type-acf-block">
-                <header class="hpc-content-type-block-heading">
-                    <span class="hpc-content-type-kicker">Children of this CPT</span>
-                    <h4>ACF field groups</h4>
-                    <p>Each section below is one ACF field group attached to <span class="hpc-code"><?php echo esc_html( $post['key'] ); ?></span>. Expand a group to manage its import and review its fields.</p>
+            <section class="hpc-content-type-acf-siblings" aria-label="<?php echo esc_attr( 'ACF field groups for ' . $post['plural'] ); ?>">
+                <header class="hpc-content-type-acf-siblings-heading">
+                    <h4>ACF field groups for <?php echo esc_html( $post['plural'] ); ?></h4>
+                    <p>These ACF groups belong to the <span class="hpc-code"><?php echo esc_html( $post['key'] ); ?></span> CPT.</p>
                 </header>
 
                 <?php if ( empty( $definition['field_groups'] ) ) : ?>
@@ -124,36 +134,27 @@ final class ContentTypeRenderer {
             </div>
         </div>
         <?php
-        $body = (string) ob_get_clean();
-
-        return CoreUi::collapsible(
-            [
-                'title'       => 'CPT — ' . $post['plural'],
-                'body_html'   => $body,
-                'meta_html'   => $meta,
-                'open'        => false,
-                'query_state' => false,
-                'class'       => 'hpc-content-type-parent',
-            ]
-        );
+        return (string) ob_get_clean();
     }
 
     /** @param array<string,mixed> $group */
     private function field_group_section( array $group, string $post_type_key ): string {
-        $registered = $this->field_group_registered( $group );
         $field_count = count( (array) $group['fields'] );
-        $meta = '<span class="hpc-content-type-summary-meta">'
-            . $this->status_label( ! empty( $group['enabled'] ) ? 'Enabled' : 'Disabled', ! empty( $group['enabled'] ) ? 'success' : 'muted' )
-            . $this->status_label( $registered ? 'Registered' : 'Not registered', $registered ? 'success' : 'warning' )
-            . '</span>';
+        $header_toggle = CoreUi::toggle(
+            'field_group_' . $group['id'],
+            ! empty( $group['enabled'] ),
+            'Enable',
+            [
+                'id'    => 'hpc-content-type-acf-enabled-' . $post_type_key . '-' . $group['id'],
+                'class' => 'hpc-content-type-field-toggle hpc-content-type-header-toggle',
+                'data'  => [ 'field-group-id' => $group['id'] ],
+            ]
+        );
 
         ob_start();
         ?>
         <div class="hpc-content-type-acf-body">
-            <div class="hpc-content-type-acf-enable">
-                <?php echo CoreUi::toggle( 'field_group_' . $group['id'], ! empty( $group['enabled'] ), 'Enable this ACF field group', [ 'class' => 'hpc-content-type-field-toggle', 'data' => [ 'field-group-id' => $group['id'] ] ] ); ?>
-                <?php if ( '' !== $group['description'] ) : ?><p><?php echo esc_html( $group['description'] ); ?></p><?php endif; ?>
-            </div>
+            <?php if ( '' !== $group['description'] ) : ?><p class="hpc-content-type-acf-description"><?php echo esc_html( $group['description'] ); ?></p><?php endif; ?>
 
             <section class="hpc-content-type-acf-details">
                 <h5>Group details</h5>
@@ -183,25 +184,13 @@ final class ContentTypeRenderer {
 
         return CoreUi::detail_card(
             [
-                'title'     => 'ACF — ' . $group['label'],
+                'title'     => $group['label'],
                 'body_html' => $body,
-                'meta_html' => $meta,
+                'meta_html' => $header_toggle,
                 'open'      => false,
                 'class'     => 'hpc-content-type-acf-group',
             ]
         );
-    }
-
-    /** @param array<string,mixed> $group */
-    private function field_group_registered( array $group ): bool {
-        $group_key = (string) ( $group['group_key'] ?? '' );
-        return '' !== $group_key
-            && function_exists( 'acf_get_local_field_group' )
-            && is_array( acf_get_local_field_group( $group_key ) );
-    }
-
-    private function status_label( string $label, string $tone ): string {
-        return '<span class="hpc-content-type-mini-status ' . esc_attr( sanitize_html_class( $tone ) ) . '"><span aria-hidden="true"></span>' . esc_html( $label ) . '</span>';
     }
 
     private function assets(): string {
@@ -222,23 +211,14 @@ final class ContentTypeRenderer {
 .hpc-section.hpc-content-type-parent>summary .hpc-section-title{font-size:16px}
 .hpc-section.hpc-content-type-parent[open]>summary{background:#f4f7fb;border-bottom:1px solid var(--hpc-line)}
 .hpc-section.hpc-content-type-parent>.hpc-section-body{border-top:0;padding:0}
-.hpc-content-type-summary-meta{align-items:center;display:inline-flex;flex-wrap:wrap;gap:6px}
-.hpc-content-type-mini-status{align-items:center;border:1px solid #d8dee8;border-radius:999px;color:#65758b;display:inline-flex;font-size:11px;font-weight:700;gap:5px;line-height:1;padding:5px 8px;white-space:nowrap}
-.hpc-content-type-mini-status>span{background:#94a3b8;border-radius:50%;height:6px;width:6px}
-.hpc-content-type-mini-status.success{border-color:#cce7d6;color:#197a3e}
-.hpc-content-type-mini-status.success>span{background:#22a05a}
-.hpc-content-type-mini-status.warning{border-color:#efd7bd;color:#9a5b13}
-.hpc-content-type-mini-status.warning>span{background:#d97706}
-.hpc-content-type-summary-key{background:#eef1f5;border-radius:5px;color:#34435a;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:11px;padding:4px 7px}
-.hpc-content-type-form{padding:0 24px 24px}
+.hpc-content-type-header-toggle{font-size:12px;font-weight:700;gap:7px;white-space:nowrap}
+.hpc-content-type-header-toggle .hpc-toggle-label{font-size:12px}
+.hpc-content-type-form{min-width:0}
 .hpc-content-type-block{padding:24px 0}
-.hpc-content-type-block+.hpc-content-type-block{border-top:2px solid #dfe5ed}
+.hpc-content-type-parent .hpc-content-type-block{padding:24px}
 .hpc-content-type-block-heading{margin:0 0 18px;max-width:780px}
-.hpc-content-type-kicker{color:var(--hpc-blue);display:block;font-size:10px;font-weight:800;letter-spacing:.08em;margin:0 0 5px;text-transform:uppercase}
 .hpc-content-type-block-heading h4{font-size:17px;margin:0 0 7px}
 .hpc-content-type-block-heading p{color:var(--hpc-muted);font-size:13px;line-height:1.55;margin:0}
-.hpc-content-type-enable-row{background:#f8fafc;border:1px solid #e1e7ef;border-radius:8px;max-width:780px;padding:16px 18px}
-.hpc-content-type-enable-row>p{color:var(--hpc-muted);font-size:13px;margin:8px 0 0}
 .hpc-content-type-cpt-fields{margin-top:22px;max-width:780px}
 .hpc-content-type-cpt-fields h5,.hpc-content-type-acf-details h5,.hpc-content-type-field-inventory h5{font-size:14px;margin:0 0 14px}
 .hpc-content-type-field{display:block;max-width:780px}
@@ -251,14 +231,17 @@ final class ContentTypeRenderer {
 .hpc-content-type-technical dl div{border-top:1px solid #edf0f4;padding:10px 0}
 .hpc-content-type-technical dt{color:var(--hpc-muted);font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase}
 .hpc-content-type-technical dd{margin:4px 0 0;overflow-wrap:anywhere}
+.hpc-content-type-acf-siblings{border-left:3px solid #d9e2ef;margin:10px 0 0 24px;padding:10px 0 0 18px}
+.hpc-content-type-acf-siblings-heading{margin:0 0 12px}
+.hpc-content-type-acf-siblings-heading h4{font-size:13px;margin:0 0 4px}
+.hpc-content-type-acf-siblings-heading p{color:var(--hpc-muted);font-size:12px;margin:0}
 .hpc-content-type-acf-list{display:flex;flex-direction:column;gap:10px}
 .hpc-detail-card.hpc-content-type-acf-group{background:#fff;border-color:#d5dde8;margin:0}
 .hpc-detail-card.hpc-content-type-acf-group>summary{padding:14px 16px}
 .hpc-detail-card.hpc-content-type-acf-group>summary .hpc-detail-card-title{font-size:13px}
 .hpc-detail-card.hpc-content-type-acf-group[open]>summary{background:#f8fafc}
 .hpc-detail-card.hpc-content-type-acf-group>.hpc-detail-card-body{padding:18px}
-.hpc-content-type-acf-enable{background:#f8fafc;border:1px solid #e1e7ef;border-radius:8px;padding:14px 16px}
-.hpc-content-type-acf-enable>p{color:var(--hpc-muted);font-size:13px;line-height:1.5;margin:8px 0 0}
+.hpc-content-type-acf-description{color:var(--hpc-muted);font-size:13px;line-height:1.55;margin:0;max-width:780px}
 .hpc-content-type-acf-details{margin-top:20px;max-width:780px}
 .hpc-content-type-acf-details dl{border:1px solid #e1e7ef;border-radius:8px;margin:0;overflow:hidden}
 .hpc-content-type-acf-details dl div{padding:11px 13px}
@@ -273,13 +256,13 @@ final class ContentTypeRenderer {
 .hpc-content-type-field-inventory li+li{border-top:1px solid #edf1f5}
 .hpc-content-type-field-inventory li>span{color:#94a3b8;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:10px;width:20px}
 .hpc-content-type-field-inventory>p,.hpc-content-type-empty{color:var(--hpc-muted);font-size:13px;margin:0}
-.hpc-content-type-actions{margin-top:0!important;padding-top:20px!important}
+.hpc-content-type-actions{margin:12px 0 0 24px!important;padding-top:14px!important}
 .hpc-content-type-status{color:var(--hpc-muted);font-size:13px}
 .hpc-content-type-form.is-saving{opacity:.7;pointer-events:none}
 .hpc-content-type-form.is-error .hpc-content-type-status{color:var(--hpc-red)}
-@media(max-width:782px){.hpc-section.hpc-content-type-parent>summary{align-items:flex-start;padding:15px 16px}.hpc-content-type-summary-meta{margin-top:7px}.hpc-content-type-form{padding:0 16px 20px}.hpc-content-type-block{padding:20px 0}.hpc-detail-card.hpc-content-type-acf-group>summary{align-items:flex-start}.hpc-detail-card.hpc-content-type-acf-group>summary .hpc-detail-card-side{flex-wrap:wrap}.hpc-detail-card.hpc-content-type-acf-group>.hpc-detail-card-body{padding:15px}}
+@media(max-width:782px){.hpc-section.hpc-content-type-parent>summary{align-items:flex-start;padding:15px 16px}.hpc-content-type-parent .hpc-content-type-block{padding:20px 16px}.hpc-content-type-acf-siblings{margin-left:8px;padding-left:10px}.hpc-content-type-actions{margin-left:8px!important}.hpc-detail-card.hpc-content-type-acf-group>summary{align-items:flex-start}.hpc-detail-card.hpc-content-type-acf-group>summary .hpc-detail-card-side{flex-wrap:wrap}.hpc-detail-card.hpc-content-type-acf-group>.hpc-detail-card-body{padding:15px}}
 </style>
-<script>(function(){if(window.hexaContentTypesReady)return;window.hexaContentTypesReady=true;document.addEventListener('click',function(event){var button=event.target.closest('.hpc-content-type-save');if(!button)return;var form=button.closest('.hpc-content-type-form');var root=button.closest('[data-hpc-content-types]');if(!form||!root)return;var status=form.querySelector('.hpc-content-type-status');var body=new URLSearchParams();body.set('action',root.dataset.action||'');body.set(root.dataset.nonceField||'nonce',root.dataset.nonce||'');body.set('content_type_id',form.dataset.contentTypeId||'');body.set('enabled',form.querySelector('.hpc-content-type-enabled input').checked?'1':'0');body.set('rewrite_slug',form.querySelector('.hpc-content-type-slug').value||'');body.set('singular',form.querySelector('.hpc-content-type-singular').value||'');body.set('plural',form.querySelector('.hpc-content-type-plural').value||'');form.querySelectorAll('.hpc-content-type-field-toggle input:checked').forEach(function(input){body.append('enabled_field_groups[]',input.dataset.fieldGroupId||'')});form.classList.add('is-saving');form.classList.remove('is-error');if(status)status.textContent='Saving...';fetch(root.dataset.ajaxUrl||window.ajaxurl,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:body.toString()}).then(function(response){return response.json()}).then(function(payload){if(!payload||!payload.success)throw new Error(payload&&payload.data&&payload.data.message?payload.data.message:'Save failed');if(status)status.textContent=payload.data.message||'Saved.';}).catch(function(error){form.classList.add('is-error');if(status)status.textContent=error.message||'Unable to save.';}).finally(function(){form.classList.remove('is-saving')});});})();</script>
+<script>(function(){if(window.hexaContentTypesReady)return;window.hexaContentTypesReady=true;document.addEventListener('click',function(event){var toggle=event.target.closest('.hpc-content-type-header-toggle');if(!toggle)return;var details=toggle.closest('details');if(!details)return;var wasOpen=details.open;window.setTimeout(function(){details.open=wasOpen},0)},true);document.addEventListener('click',function(event){var button=event.target.closest('.hpc-content-type-save');if(!button)return;var form=button.closest('.hpc-content-type-form');var root=button.closest('[data-hpc-content-types]');if(!form||!root)return;var status=form.querySelector('.hpc-content-type-status');var body=new URLSearchParams();body.set('action',root.dataset.action||'');body.set(root.dataset.nonceField||'nonce',root.dataset.nonce||'');body.set('content_type_id',form.dataset.contentTypeId||'');body.set('enabled',form.querySelector('.hpc-content-type-enabled input').checked?'1':'0');body.set('rewrite_slug',form.querySelector('.hpc-content-type-slug').value||'');body.set('singular',form.querySelector('.hpc-content-type-singular').value||'');body.set('plural',form.querySelector('.hpc-content-type-plural').value||'');form.querySelectorAll('.hpc-content-type-field-toggle input:checked').forEach(function(input){body.append('enabled_field_groups[]',input.dataset.fieldGroupId||'')});form.classList.add('is-saving');form.classList.remove('is-error');if(status)status.textContent='Saving...';fetch(root.dataset.ajaxUrl||window.ajaxurl,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'},body:body.toString()}).then(function(response){return response.json()}).then(function(payload){if(!payload||!payload.success)throw new Error(payload&&payload.data&&payload.data.message?payload.data.message:'Save failed');if(status)status.textContent=payload.data.message||'Saved.';}).catch(function(error){form.classList.add('is-error');if(status)status.textContent=error.message||'Unable to save.';}).finally(function(){form.classList.remove('is-saving')});});})();</script>
 HTML;
     }
 }

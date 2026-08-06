@@ -115,16 +115,18 @@ $renderer_source = (string) file_get_contents( $root . '/src/ContentTypes/Conten
 
 content_type_renderer_assert( str_contains( $html, '<details class="hpc-section hpc-content-type-parent">' ), 'Each CPT should render as the parent accordion.' );
 content_type_renderer_assert( ! preg_match( '/<details class="hpc-section hpc-content-type-parent"[^>]*\sopen(?:\s|>)/', $html ), 'CPT parent accordions must be collapsed by default.' );
-content_type_renderer_assert( str_contains( $html, 'CPT — Press Releases' ), 'The parent heading should explicitly identify the CPT.' );
-content_type_renderer_assert( str_contains( $html, 'Parent custom post type' ), 'The CPT configuration should identify itself as the parent.' );
+content_type_renderer_assert( str_contains( $html, '<span class="hpc-section-title">Press Releases</span>' ), 'The CPT header should show the actual title without a prefix.' );
+content_type_renderer_assert( str_contains( $html, 'id="hpc-content-type-enabled-press-release"' ), 'The CPT enable control should be in its card header.' );
+content_type_renderer_assert( ! str_contains( $html, 'hpc-content-type-mini-status' ) && ! str_contains( $html, 'hpc-content-type-summary-key' ), 'CPT headers must not show redundant state badges or keys.' );
 content_type_renderer_assert( str_contains( $html, 'Labels and URL' ), 'Editable labels and URL should remain visible.' );
 content_type_renderer_assert( str_contains( $html, '<summary>CPT technical details</summary>' ), 'Secondary CPT metadata should remain inside the parent CPT section.' );
-content_type_renderer_assert( str_contains( $html, 'Children of this CPT' ), 'The ACF collection should explicitly identify itself as child configuration.' );
-content_type_renderer_assert( str_contains( $html, 'Each section below is one ACF field group attached to' ), 'The CPT-to-ACF relationship should be explained.' );
+content_type_renderer_assert( str_contains( $html, '<section class="hpc-content-type-acf-siblings"' ), 'The ACF collection should render as a sibling outside the CPT accordion.' );
+content_type_renderer_assert( str_contains( $html, 'ACF field groups for Press Releases' ), 'The ACF collection should identify its owning CPT.' );
 content_type_renderer_assert( 2 === substr_count( $html, '<details class="hpc-detail-card hpc-content-type-acf-group">' ), 'Every ACF group should render as its own child accordion.' );
 content_type_renderer_assert( ! preg_match( '/<details class="hpc-detail-card hpc-content-type-acf-group"[^>]*\sopen(?:\s|>)/', $html ), 'ACF child accordions must be collapsed by default.' );
-content_type_renderer_assert( str_contains( $html, 'ACF — Press Release Fields' ) && str_contains( $html, 'ACF — Distribution Fields' ), 'ACF child headings should identify each field group.' );
-content_type_renderer_assert( str_contains( $html, 'Enable this ACF field group' ), 'Each ACF child should own its enable control.' );
+content_type_renderer_assert( str_contains( $html, '<span class="hpc-detail-card-title">Press Release Fields</span>' ) && str_contains( $html, '<span class="hpc-detail-card-title">Distribution Fields</span>' ), 'ACF headers should show the actual field-group titles without prefixes.' );
+content_type_renderer_assert( str_contains( $html, 'id="hpc-content-type-acf-enabled-press-release-press-release-fields"' ) && str_contains( $html, 'id="hpc-content-type-acf-enabled-press-release-distribution-fields"' ), 'Each ACF card should put its enable control in the header.' );
+content_type_renderer_assert( str_contains( $renderer_source, "details.open=wasOpen" ), 'Header switches should not change the accordion open state.' );
 content_type_renderer_assert( str_contains( $html, 'Group details' ) && str_contains( $html, 'Attached CPT' ), 'Each ACF child should show its group metadata and parent CPT.' );
 content_type_renderer_assert( str_contains( $html, 'Imported fields' ) && str_contains( $html, 'Source URL' ), 'Each ACF child should show its field inventory.' );
 content_type_renderer_assert( ! str_contains( $html, '<summary>View fields</summary>' ), 'Field inventories should belong directly to their ACF child section.' );
@@ -133,29 +135,40 @@ content_type_renderer_assert( ! str_contains( $renderer_source, 'hpc-content-typ
 content_type_renderer_assert( ! str_contains( $renderer_source, 'hpc-content-type-facts' ), 'Technical facts must not render as a fact-card grid.' );
 content_type_renderer_assert( ! str_contains( $renderer_source, 'grid-template-columns' ), 'Content-type settings must remain single-column.' );
 
-$enable_position = strpos( $html, 'Enable Press Releases' );
+$parent_position = strpos( $html, '<details class="hpc-section hpc-content-type-parent">' );
+$enable_position = strpos( $html, 'id="hpc-content-type-enabled-press-release"' );
 $labels_position = strpos( $html, 'Labels and URL' );
 $technical_position = strpos( $html, 'CPT technical details' );
-$acf_collection_position = strpos( $html, '<h4>ACF field groups</h4>' );
-$first_acf_position = strpos( $html, 'ACF — Press Release Fields' );
-$second_acf_position = strpos( $html, 'ACF — Distribution Fields' );
+$acf_collection_position = strpos( $html, '<section class="hpc-content-type-acf-siblings"' );
+$first_acf_position = strpos( $html, '<span class="hpc-detail-card-title">Press Release Fields</span>' );
+$second_acf_position = strpos( $html, '<span class="hpc-detail-card-title">Distribution Fields</span>' );
 $save_position = strpos( $html, 'Save CPT and ACF settings' );
+$parent_markup = false !== $parent_position && false !== $acf_collection_position
+    ? substr( $html, $parent_position, $acf_collection_position - $parent_position )
+    : '';
 
 content_type_renderer_assert(
-    false !== $enable_position
+    '' !== $parent_markup && substr_count( $parent_markup, '<details' ) === substr_count( $parent_markup, '</details>' ),
+    'The CPT accordion must close before its ACF sibling collection begins.'
+);
+
+content_type_renderer_assert(
+    false !== $parent_position
+    && false !== $enable_position
     && false !== $labels_position
     && false !== $technical_position
     && false !== $acf_collection_position
     && false !== $first_acf_position
     && false !== $second_acf_position
     && false !== $save_position
+    && $parent_position < $enable_position
     && $enable_position < $labels_position
     && $labels_position < $technical_position
     && $technical_position < $acf_collection_position
     && $acf_collection_position < $first_acf_position
     && $first_acf_position < $second_acf_position
     && $second_acf_position < $save_position,
-    'The parent CPT settings and child ACF groups should follow a clear hierarchy.'
+    'Each CPT should be followed immediately by its external ACF sibling cards.'
 );
 
-echo "PASS: Content types render as collapsed CPT parents with collapsed ACF child sections.\n";
+echo "PASS: CPT headers own their enable controls and external ACF siblings follow each CPT.\n";

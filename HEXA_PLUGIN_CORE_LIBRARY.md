@@ -13,7 +13,7 @@ Root namespace: Hexa\PluginCore\
 Source root: src/
 Version source: VERSION
 
-Current release: 3.0.3
+Current release: 3.0.4
 ```
 
 Do not rename these.
@@ -892,7 +892,7 @@ Namespace: Hexa\PluginCore\ContentTypes
 
 Classes: ContentTypeDefinition, ContentTypeSettingsStore, ContentTypeRegistry, ContentTypeRegistrar, ContentTypeAjaxController, ContentTypeRenderer.
 
-Use this for one reusable CPT contract across host plugins. Hosts supply owned or external definitions and keep business behavior. Core keeps the post-type key immutable, persists editable singular/plural labels and rewrite slugs, and registers attached ACF groups. The renderer makes every CPT a collapsed parent card: CPT configuration comes first, followed by one collapsed child section per attached ACF group with its toggle, registration state, group key, target CPT, dependencies, field count, and field inventory. Host plugins only supply definitions; they do not recreate this hierarchy. Register the registry as a `CoreBootstrap` module. See `docs/content-types.md` and test with `tests/content-types.php` and `tests/content-type-renderer.php`.
+Use this for one reusable CPT contract across host plugins. Hosts supply owned or external definitions and keep business behavior. Core keeps the post-type key immutable, persists editable singular/plural labels and rewrite slugs, and registers attached ACF groups. Every collapsed CPT card header shows the CPT title and functional enable switch. Immediately below and outside that CPT accordion, Core renders one collapsed sibling card per attached ACF group; each ACF header shows its title and functional enable switch, while its body contains the group key, target CPT, dependencies, field count, and field inventory. Host plugins only supply definitions; they do not recreate this hierarchy. Register the registry as a `CoreBootstrap` module. See `docs/content-types.md` and test with `tests/content-types.php` and `tests/content-type-renderer.php`.
 
 ## Entity Sources
 
