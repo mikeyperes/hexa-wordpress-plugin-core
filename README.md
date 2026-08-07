@@ -99,6 +99,8 @@ Version 2.1.4 keeps Getting Started parent-step and full-checklist runs availabl
 
 Version 3.0.0 establishes the coordinated major release for the expanded Core data-normalization, operations, provisioning, checklist-state, fleet-synchronization, and reusable admin infrastructure shipped in this source tree.
 
+Version 3.0.5 makes external ACF sibling cards visually secondary to their CPT with quieter surfaces, smaller titles, compact switches and chevrons, and softer relationship rails. Imported field rows show label, name, and type with a per-field JSON disclosure sourced from the actual ACF definition, while expanded section and action spacing improves scanability.
+
 Version 3.0.4 puts functional enable switches directly in CPT and ACF card headers, removes redundant status badges and key chips, and renders each CPT's ACF cards as immediate siblings outside the CPT accordion.
 
 Version 3.0.3 organizes content-type management as collapsed CPT parent cards. Each parent contains its own CPT configuration followed by a separate collapsed child section for every attached ACF field group, including group metadata and a compact field inventory.
