@@ -57,6 +57,7 @@ src/SchemaTools/        Hexa\PluginCore\SchemaTools
 src/SearchDisplay/      Hexa\PluginCore\SearchDisplay
 src/SearchQuery/        Hexa\PluginCore\SearchQuery
 src/SmartSearch/        Hexa\PluginCore\SmartSearch
+src/DirectorySearch/    Hexa\PluginCore\DirectorySearch
 src/SystemEnvironment/  Hexa\PluginCore\SystemEnvironment
 src/Taxonomies/         Hexa\PluginCore\Taxonomies
 src/Typography/         Hexa\PluginCore\Typography
