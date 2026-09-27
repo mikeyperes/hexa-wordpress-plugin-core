@@ -105,7 +105,17 @@ final class FieldGroups {
         if ( Acf::active() && function_exists( 'acf_get_field_groups' ) ) {
             return (array) acf_get_field_groups();
         }
-        return array_values( self::$groups + self::database() );
+        return self::listed();
+    }
+
+    /**
+     * Code and database groups after the `load_field_groups` filter, as
+     * acf_get_field_groups() returns them.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    private static function listed(): array {
+        return array_values( array_filter( (array) apply_filters( 'hexa_fields/load_field_groups', array_values( self::$groups + self::database() ) ), 'is_array' ) );
     }
 
     /**
@@ -189,7 +199,7 @@ final class FieldGroups {
      * @return array<int,array<string,mixed>>
      */
     public static function for_screen( array $screen ): array {
-        $groups = array_filter( self::$groups + self::database(), static fn( array $group ): bool => ! empty( $group['active'] ) && self::matches( $group, $screen ) );
+        $groups = array_filter( self::listed(), static fn( array $group ): bool => ! empty( $group['active'] ) && self::matches( $group, $screen ) );
         uasort( $groups, static fn( array $a, array $b ): int => (int) $a['menu_order'] <=> (int) $b['menu_order'] );
         return array_values( $groups );
     }

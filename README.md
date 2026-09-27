@@ -105,6 +105,8 @@ Version 3.0.0 establishes the coordinated major release for the expanded Core da
 
 Version 3.2.1 renames the DirectorySearch URL-owner parameter from `dir` to `hds` (the old name is still read), because common web firewalls such as ModSecurity/Imunify360 reject any request carrying `dir=`, which broke live search and pagination.
 
+Version 3.4.7 adds `hexa_fields_on()` to `bootstrap.php` for field hooks registered while plugins load (before Core's classes can be autoloaded; the migration tool emits it for file-level hooks), and applies the `load_field_groups` filter to native group lists as ACF does.
+
 Version 3.4.6 reads field groups created in the ACF admin screen (`acf-field-group`/`acf-field` posts) when ACF is not active, exactly as ACF does: their fields resolve and format, active ones render on their screens, and code-registered groups with the same key win. A missing value now takes the field's or its type's `default_value`, as `acf_get_value()` does. `Field::all()` follows `get_field_objects()` exactly (stored-value order; a value is listed when its reference resolves to a field of the same name), page-link and post fields resolve only posts `acf_get_posts()` returns, and WYSIWYG output runs ACF's `acf_the_content` filter chain.
 
 Version 3.4.5 adds `Form::field()`, the equivalent of `acf_render_field_wrap()`: one field outside a form, posted under `acf[<key>]` in both modes, and maps it in `bin/migrate-to-fields.php`.
