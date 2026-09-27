@@ -236,6 +236,22 @@ final class FieldGroups {
      */
     private static function rule( array $rule, array $screen, array $group = [] ): bool {
         $param = (string) ( $rule['param'] ?? '' );
+        $result = self::builtin_rule( $rule, $screen, $group );
+        // As acf_match_location_rule(): every result passes through ACF's location filters,
+        // which is also how hosts define their own rules (`location/rule_match/<param>`).
+        foreach ( [ 'location/match_rule/type=' . $param, 'location/match_rule', 'location/rule_match/' . $param, 'location/rule_match' ] as $hook ) {
+            $result = (bool) apply_filters( 'hexa_fields/' . $hook, $result, $rule, $screen, $group );
+        }
+        return $result;
+    }
+
+    /**
+     * @param array<string,mixed> $rule
+     * @param array<string,mixed> $screen
+     * @param array<string,mixed> $group
+     */
+    private static function builtin_rule( array $rule, array $screen, array $group = [] ): bool {
+        $param = (string) ( $rule['param'] ?? '' );
         $value = (string) ( $rule['value'] ?? '' );
         $equal = '!=' !== (string) ( $rule['operator'] ?? '==' );
 
@@ -294,8 +310,8 @@ final class FieldGroups {
                 }
                 break;
             default:
-                // Host-defined rules, registered with Hooks::on( 'location/rule_match/<param>', ... ).
-                return (bool) apply_filters( 'hexa_fields/location/rule_match/' . $param, false, $rule, $screen, $group );
+                // Unknown to Core: host rules decide through the location filters in rule().
+                return false;
         }
         if ( null === $actual ) {
             return false;

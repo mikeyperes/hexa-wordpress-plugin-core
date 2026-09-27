@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 $GLOBALS['options'] = [];
 function add_action( $hook, $callback, $priority = 10, $args = 1 ) { return true; }
-function add_filter( $hook, $callback, $priority = 10, $args = 1 ) { return true; }
-function apply_filters( $hook, $value, ...$args ) { return $value; }
+function add_filter( $hook, $callback, $priority = 10, $args = 1 ) { $GLOBALS['filters'][ $hook ][] = $callback; return true; }
+function apply_filters( $hook, $value, ...$args ) { foreach ( $GLOBALS['filters'][ $hook ] ?? [] as $cb ) { $value = $cb( $value, ...$args ); } return $value; }
 function do_action( $hook, ...$args ) {}
 function did_action( $hook ) { return 1; }
 function doing_action( $hook = null ) { return false; }
@@ -122,5 +122,15 @@ FieldGroups::add( [ 'key' => 'group_loops', 'title' => 'Loops', 'fields' => [ [ 
 update_option( 'options_loop_author', 'Jane' );
 update_option( '_options_loop_author', 'loop_author' );
 'Jane' === Field::get( 'loop_author', 'option' ) || $fail( 'A reference that names a field resolves, as acf_get_meta_field() does.' );
+
+// Location rules pass through ACF's location filters, as acf_match_location_rule() does.
+FieldGroups::add( [ 'key' => 'group_hidden', 'title' => 'Hidden', 'fields' => [], 'location' => [ [ [ 'param' => 'options_page', 'operator' => '==', 'value' => '*' ] ] ] ] );
+$shown = static fn(): array => array_map( static fn( array $g ): string => $g['key'], FieldGroups::for_screen( [ 'options_page' => '*' ] ) );
+in_array( 'group_hidden', $shown(), true ) || $fail( 'The built-in options_page rule matches.' );
+\Hexa\PluginCore\Fields\Hooks::on( 'location/match_rule', static fn( bool $match, array $rule, array $screen, array $group ): bool => 'group_hidden' === ( $group['key'] ?? '' ) ? false : $match, 20, 4 );
+! in_array( 'group_hidden', $shown(), true ) || $fail( 'A location/match_rule filter can hide a group that its built-in rule matches.' );
+\Hexa\PluginCore\Fields\Hooks::on( 'location/rule_match/is_desk', static fn( bool $match, array $rule ): bool => 'yes' === $rule['value'], 10, 4 );
+FieldGroups::add( [ 'key' => 'group_desk', 'title' => 'Desk', 'fields' => [], 'location' => [ [ [ 'param' => 'is_desk', 'operator' => '==', 'value' => 'yes' ] ] ] ] );
+1 === count( array_filter( FieldGroups::for_screen( [] ), static fn( array $g ): bool => 'group_desk' === $g['key'] ) ) || $fail( 'A host-defined rule decides through location/rule_match/<param>.' );
 
 echo "PASS: native Fields resolve, derive keys and return values as ACF does.\n";
