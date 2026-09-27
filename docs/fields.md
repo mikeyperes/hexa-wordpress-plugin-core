@@ -63,4 +63,4 @@ data moves freely between the two modes. ACF Pro is never a requirement.
 | `acf_get_field_group()` / `acf_get_fields()` / `acf_get_field()` | `FieldGroups::get_group()` / `fields()` / `get_field()` |
 | `function_exists( 'get_field' )` | `Field::available()` |
 
-Remove every "ACF Pro is required" gate and dependency declaration.
+Run `php bin/migrate-to-fields.php <plugin-root> --dry-run` to preview, then without `--dry-run` to apply the table above. It rewrites calls token by token (comments and strings untouched) and lists what needs a person: calls that run at file load before Core's autoloader exists (move them into a `plugins_loaded` or later callback), ACF plugin detection, and ACF Pro dependency declarations. Remove every "ACF Pro is required" gate and dependency declaration.
