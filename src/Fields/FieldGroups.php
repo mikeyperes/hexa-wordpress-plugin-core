@@ -194,7 +194,7 @@ final class FieldGroups {
             }
             $all = true;
             foreach ( $rules as $rule ) {
-                if ( ! is_array( $rule ) || ! self::rule( $rule, $screen ) ) {
+                if ( ! is_array( $rule ) || ! self::rule( $rule, $screen, $group ) ) {
                     $all = false;
                     break;
                 }
@@ -209,8 +209,9 @@ final class FieldGroups {
     /**
      * @param array<string,mixed> $rule
      * @param array<string,mixed> $screen
+     * @param array<string,mixed> $group
      */
-    private static function rule( array $rule, array $screen ): bool {
+    private static function rule( array $rule, array $screen, array $group = [] ): bool {
         $param = (string) ( $rule['param'] ?? '' );
         $value = (string) ( $rule['value'] ?? '' );
         $equal = '!=' !== (string) ( $rule['operator'] ?? '==' );
@@ -270,7 +271,8 @@ final class FieldGroups {
                 }
                 break;
             default:
-                return false;
+                // Host-defined rules, registered with Hooks::on( 'location/rule_match/<param>', ... ).
+                return (bool) apply_filters( 'hexa_fields/location/rule_match/' . $param, false, $rule, $screen, $group );
         }
         if ( null === $actual ) {
             return false;

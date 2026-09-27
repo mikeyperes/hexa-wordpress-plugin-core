@@ -45,7 +45,8 @@ data moves freely between the two modes. ACF Pro is never a requirement.
   screens, options pages and `Form::render()`. Location rules supported:
   post_type, post, page_template, post_status, post_taxonomy, post_category,
   user_form, user_role, current_user, current_user_role, taxonomy and
-  options_page. Flexible content, clone and map fields keep their stored value
+  options_page, plus host-defined rules registered with
+  `Hooks::on( 'location/rule_match/<param>', ... )` exactly as with ACF. Flexible content, clone and map fields keep their stored value
   but are edited only with ACF.
 - Native hooks fire only as `hexa_fields/*`, never `acf/*`, so third-party ACF
   add-ons are never called without ACF.
