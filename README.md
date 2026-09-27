@@ -105,6 +105,8 @@ Version 3.0.0 establishes the coordinated major release for the expanded Core da
 
 Version 3.2.1 renames the DirectorySearch URL-owner parameter from `dir` to `hds` (the old name is still read), because common web firewalls such as ModSecurity/Imunify360 reject any request carrying `dir=`, which broke live search and pagination.
 
+Version 3.4.2 makes native `Field::objects()`/`all()` list exactly what ACF lists: every top-level field with a stored `_name` reference on the object (verified field-for-field against ACF on hexaprwire.com's real releases and outlet records).
+
 Version 3.4.1 lets host-defined location rules (`Hooks::on( 'location/rule_match/<param>', ... )`) decide where native field groups appear, as ACF does.
 
 Version 3.4.0 adds `Hexa\PluginCore\Fields`, the one custom-field API for every Hexa plugin: field-group registration, `Field::get()`/`update()` and row loops, options pages, forms and ACF lifecycle hooks, all with ACF-identical signatures. With ACF active every call delegates to ACF; without it Core stores, formats and edits the same data natively in ACF's storage layout, so ACF Pro is no longer a requirement. Content types, field-structure registries, the settings panel, entity sources, FAQ sets, the gallery module and query filters now use it. See `docs/fields.md`.

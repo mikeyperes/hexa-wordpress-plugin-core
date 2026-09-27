@@ -96,19 +96,19 @@ final class Field {
         if ( Acf::active() ) {
             return get_field_objects( $context, $format, $load_value );
         }
+        // Like ACF: every top-level field with a stored `_name` reference on this object.
         $resolved = Storage::context( $context );
         $objects = [];
-        foreach ( FieldGroups::for_screen( Storage::screen( $resolved ) ) as $group ) {
-            foreach ( (array) $group['fields'] as $field ) {
-                if ( '' === (string) $field['name'] ) {
-                    continue;
-                }
-                if ( $load_value ) {
-                    $value = Values::load( $resolved, $field, (string) $field['name'] );
-                    $field['value'] = $format ? Values::format( $value, $resolved, $field ) : $value;
-                }
-                $objects[ (string) $field['name'] ] = $field;
+        foreach ( Storage::referenced( $resolved ) as $name => $key ) {
+            $field = FieldGroups::get_field( $key );
+            if ( null === $field || null === FieldGroups::get_group( (string) ( $field['parent'] ?? '' ) ) ) {
+                continue;
             }
+            if ( $load_value ) {
+                $value = Values::load( $resolved, $field, (string) $name );
+                $field['value'] = $format ? Values::format( $value, $resolved, $field ) : $value;
+            }
+            $objects[ (string) $name ] = $field;
         }
         return [] === $objects ? false : $objects;
     }

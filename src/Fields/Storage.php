@@ -109,6 +109,34 @@ final class Storage {
         return delete_metadata( $type, (int) $id, $name );
     }
 
+    /**
+     * Stored field names with their `_name` field-key reference, as ACF uses to
+     * list an object's fields.
+     *
+     * @param array{0:string,1:int|string} $context
+     * @return array<string,string> name => field key
+     */
+    public static function referenced( array $context ): array {
+        [ $type, $id ] = $context;
+        $names = [];
+        if ( 'option' === $type ) {
+            global $wpdb;
+            $prefix = '_' . $id . '_';
+            $rows = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s AND option_value LIKE %s", $wpdb->esc_like( $prefix ) . '%', 'field\\_%' ) );
+            foreach ( (array) $rows as $row ) {
+                $names[ substr( (string) $row->option_name, strlen( $prefix ) ) ] = (string) $row->option_value;
+            }
+            return $names;
+        }
+        foreach ( (array) get_metadata( $type, (int) $id ) as $key => $values ) {
+            $reference = is_array( $values ) ? (string) ( $values[0] ?? '' ) : '';
+            if ( str_starts_with( (string) $key, '_' ) && str_starts_with( $reference, 'field_' ) ) {
+                $names[ substr( (string) $key, 1 ) ] = $reference;
+            }
+        }
+        return $names;
+    }
+
     /** @return array{0:string,1:int|string} */
     private static function current(): array {
         $post_id = function_exists( 'get_the_ID' ) ? (int) get_the_ID() : 0;
