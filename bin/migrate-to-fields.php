@@ -36,7 +36,7 @@ $map = [
     'acf_get_field_groups' => $groups . 'all',
     'acf_add_options_page' => '\\Hexa\\PluginCore\\Fields\\OptionsPages::add', 'acf_add_options_sub_page' => '\\Hexa\\PluginCore\\Fields\\OptionsPages::add_sub',
     'acf_form_head' => '\\Hexa\\PluginCore\\Fields\\Form::head', 'acf_form' => '\\Hexa\\PluginCore\\Fields\\Form::render',
-    'acf_enqueue_scripts' => '\\Hexa\\PluginCore\\Fields\\Form::enqueue', 'acf_get_form_data' => '\\Hexa\\PluginCore\\Fields\\Form::data',
+    'acf_enqueue_scripts' => '\\Hexa\\PluginCore\\Fields\\Form::enqueue', 'acf_get_form_data' => '\\Hexa\\PluginCore\\Fields\\Form::data', 'acf_render_field_wrap' => '\\Hexa\\PluginCore\\Fields\\Form::field',
 ];
 $guards = array_merge( array_keys( $map ), [ 'acf' ] );
 $review_patterns = [

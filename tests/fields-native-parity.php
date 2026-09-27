@@ -11,6 +11,11 @@ function do_action( $hook, ...$args ) {}
 function did_action( $hook ) { return 1; }
 function doing_action( $hook = null ) { return false; }
 function is_admin() { return false; }
+function esc_attr( $v ) { return htmlspecialchars( (string) $v, ENT_QUOTES ); }
+function esc_html( $v ) { return htmlspecialchars( (string) $v, ENT_QUOTES ); }
+function esc_url( $v ) { return (string) $v; }
+function wp_kses_post( $v ) { return (string) $v; }
+function wpautop( $v ) { return (string) $v; }
 function get_option( $name, $default = false ) { return array_key_exists( $name, $GLOBALS['options'] ) ? $GLOBALS['options'][ $name ] : $default; }
 function update_option( $name, $value, $autoload = null ) { $GLOBALS['options'][ $name ] = $value; return true; }
 function delete_option( $name ) { $existed = array_key_exists( $name, $GLOBALS['options'] ); unset( $GLOBALS['options'][ $name ] ); return $existed; }
@@ -54,5 +59,10 @@ update_option( 'options_raw_only', 'raw' );
 'raw' === Field::get( 'raw_only', 'option' ) || $fail( 'An unknown name returns the raw stored value.' );
 Field::delete( 'mission', 'option' ) || $fail( 'delete_field() erases a referenced field.' );
 null === Field::get( 'mission', 'option' ) || $fail( 'A deleted field reads as never saved.' );
+
+ob_start();
+\Hexa\PluginCore\Fields\Form::field( [ 'key' => 'field_audio_url', 'name' => 'audio_url', 'label' => 'Audio', 'type' => 'text', 'value' => 'https://example.test/a.mp3' ] );
+$html = (string) ob_get_clean();
+str_contains( $html, 'name="acf[field_audio_url]"' ) && str_contains( $html, 'https://example.test/a.mp3' ) || $fail( 'Form::field() renders one field under acf[<key>] with its value, as acf_render_field_wrap() does.' );
 
 echo "PASS: native Fields resolve, derive keys and return values as ACF does.\n";

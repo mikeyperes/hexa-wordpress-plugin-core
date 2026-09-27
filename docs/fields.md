@@ -61,6 +61,7 @@ data moves freely between the two modes. ACF Pro is never a requirement.
 | `get_field()` / `update_field()` / `have_rows()` ... | `Field::get()` / `Field::update()` / `Field::have_rows()` ... |
 | `acf_add_options_page()` / `acf_add_options_sub_page()` | `OptionsPages::add()` / `OptionsPages::add_sub()` |
 | `acf_form_head()` / `acf_form()` | `Form::head()` / `Form::render()` |
+| `acf_render_field_wrap( $f )` | `Form::field( $f )` (posts under `acf[<key>]`, as ACF does) |
 | `acf_get_field_group()` / `acf_get_fields()` / `acf_get_field()` | `FieldGroups::get_group()` / `fields()` / `get_field()` |
 | `function_exists( 'get_field' )` | `Field::available()` |
 
