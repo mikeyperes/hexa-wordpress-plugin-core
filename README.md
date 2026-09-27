@@ -105,6 +105,8 @@ Version 3.0.0 establishes the coordinated major release for the expanded Core da
 
 Version 3.2.1 renames the DirectorySearch URL-owner parameter from `dir` to `hds` (the old name is still read), because common web firewalls such as ModSecurity/Imunify360 reject any request carrying `dir=`, which broke live search and pagination.
 
+Version 3.4.10 fires ACF's `include_fields` registration moment natively (just before `init`, as ACF does), so groups registered with `Hooks::on( 'include_fields', ... )` or `hexa_fields_on()` exist without ACF.
+
 Version 3.4.9 resolves the published fields of trashed ACF admin-screen groups by key or name, as `acf_get_field()` does, while never listing or rendering those groups.
 
 Version 3.4.8 passes every native location-rule result through ACF's location filters (`location/match_rule/type=<param>`, `location/match_rule`, `location/rule_match/<param>`, `location/rule_match`), as `acf_match_location_rule()` does, so host visibility filters work without ACF.
