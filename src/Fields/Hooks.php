@@ -22,7 +22,7 @@ final class Hooks {
             return;
         }
         // `init` (acf/init) is where hosts register fields: run late registrations at once.
-        if ( Acf::active() ? did_action( 'acf/init' ) && ! doing_action( 'acf/init' ) : self::$init_fired ) {
+        if ( Acf::active() ? did_action( 'acf/init' ) && ! doing_action( 'acf/init' ) : self::$init_fired && ! doing_action( 'hexa_fields/init' ) ) {
             $callback();
             return;
         }

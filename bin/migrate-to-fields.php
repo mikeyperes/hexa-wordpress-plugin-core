@@ -33,7 +33,7 @@ $map = [
     'acf_add_local_field_group' => $groups . 'add', 'acf_remove_local_field_group' => $groups . 'remove',
     'acf_get_field_group' => $groups . 'get_group', 'acf_get_local_field_group' => $groups . 'get_group',
     'acf_get_fields' => $groups . 'fields', 'acf_get_field' => $groups . 'get_field', 'acf_get_local_field' => $groups . 'get_field',
-    'acf_get_field_groups' => $groups . 'all',
+    'acf_get_field_groups' => $groups . 'all', 'acf_get_local_field_groups' => $groups . 'all', 'acf_get_local_fields' => $groups . 'fields',
     'acf_add_options_page' => '\\Hexa\\PluginCore\\Fields\\OptionsPages::add', 'acf_add_options_sub_page' => '\\Hexa\\PluginCore\\Fields\\OptionsPages::add_sub',
     'acf_form_head' => '\\Hexa\\PluginCore\\Fields\\Form::head', 'acf_form' => '\\Hexa\\PluginCore\\Fields\\Form::render',
     'acf_enqueue_scripts' => '\\Hexa\\PluginCore\\Fields\\Form::enqueue', 'acf_get_form_data' => '\\Hexa\\PluginCore\\Fields\\Form::data', 'acf_render_field_wrap' => '\\Hexa\\PluginCore\\Fields\\Form::field',

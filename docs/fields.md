@@ -51,6 +51,10 @@ data moves freely between the two modes. ACF Pro is never a requirement.
 - Native hooks fire only as `hexa_fields/*`, never `acf/*`, so third-party ACF
   add-ons are never called without ACF.
 
+## Groups built in the ACF admin screen
+
+ACF stores groups created in its admin screen as `acf-field-group` and `acf-field` posts. Without ACF, `Fields\Database` reads them on first need (one query per request): their fields resolve and format like code-registered ones, active groups render on their screens, and a code-registered group with the same key takes precedence, as in ACF.
+
 ## Migrating a host plugin
 
 | ACF | Fields |

@@ -20,6 +20,34 @@ function get_option( $name, $default = false ) { return array_key_exists( $name,
 function update_option( $name, $value, $autoload = null ) { $GLOBALS['options'][ $name ] = $value; return true; }
 function delete_option( $name ) { $existed = array_key_exists( $name, $GLOBALS['options'] ); unset( $GLOBALS['options'][ $name ] ); return $existed; }
 
+// ACF admin-screen groups, as stored in wp_posts.
+$GLOBALS['wpdb'] = new class() {
+	public string $posts = 'wp_posts';
+	public string $options = 'wp_options';
+	public function esc_like( string $text ): string { return addcslashes( $text, '_%\\' ); }
+	public function prepare( string $sql, ...$args ): string { return vsprintf( str_replace( '%s', "'%s'", $sql ), $args ); }
+	public function get_results( string $sql ): array {
+		if ( str_contains( $sql, 'wp_options' ) ) {
+			// options stored in insertion order; the test only needs `options_` / `_options_` rows.
+			$rows = [];
+			foreach ( $GLOBALS['options'] as $name => $value ) {
+				if ( str_starts_with( $name, 'options_' ) || str_starts_with( $name, '_options_' ) ) {
+					$rows[] = (object) [ 'option_name' => $name, 'option_value' => $value ];
+				}
+			}
+			return $rows;
+		}
+		$row = static fn( int $id, string $type, string $status, string $title, string $key, string $name, array $settings, int $parent ): object => (object) [ 'ID' => $id, 'post_type' => $type, 'post_status' => $status, 'post_title' => $title, 'post_name' => $key, 'post_excerpt' => $name, 'post_content' => serialize( $settings ), 'post_parent' => $parent, 'menu_order' => 0 ];
+		return [
+			$row( 10, 'acf-field-group', 'publish', 'Contacts', 'group_db_contacts', '', [ 'location' => [ [ [ 'param' => 'options_page', 'operator' => '==', 'value' => '*' ] ] ] ], 0 ),
+			$row( 11, 'acf-field', 'publish', 'Emails', 'field_db_emails', 'db_emails', [ 'type' => 'repeater' ], 10 ),
+			$row( 12, 'acf-field', 'publish', 'Email', 'field_db_email', 'db_email', [ 'type' => 'email' ], 11 ),
+			$row( 20, 'acf-field-group', 'acf-disabled', 'Old', 'group_db_old', '', [], 0 ),
+			$row( 21, 'acf-field', 'publish', 'Note', 'field_db_note', 'db_note', [ 'type' => 'text' ], 20 ),
+		];
+	}
+};
+
 spl_autoload_register( static function ( string $class ): void {
 	$prefix = 'Hexa\\PluginCore\\Fields\\';
 	if ( str_starts_with( $class, $prefix ) ) {
@@ -64,5 +92,35 @@ ob_start();
 \Hexa\PluginCore\Fields\Form::field( [ 'key' => 'field_audio_url', 'name' => 'audio_url', 'label' => 'Audio', 'type' => 'text', 'value' => 'https://example.test/a.mp3' ] );
 $html = (string) ob_get_clean();
 str_contains( $html, 'name="acf[field_audio_url]"' ) && str_contains( $html, 'https://example.test/a.mp3' ) || $fail( 'Form::field() renders one field under acf[<key>] with its value, as acf_render_field_wrap() does.' );
+
+// Missing values take the type default, as acf_get_value() does.
+'' === Field::get( 'field_mission', 'option' ) || $fail( 'A missing textarea read by key returns its type default ("").' );
+
+// Groups created in the ACF admin screen resolve from the database.
+$keys = array_map( static fn( array $g ): string => (string) $g['key'], FieldGroups::all() );
+in_array( 'group_db_contacts', $keys, true ) && in_array( 'group_db_old', $keys, true ) || $fail( 'FieldGroups::all() includes database groups, active and disabled, as acf_get_field_groups() does.' );
+update_option( 'options_db_emails', 1 );
+update_option( '_options_db_emails', 'field_db_emails' );
+update_option( 'options_db_emails_0_db_email', 'desk@example.test' );
+update_option( '_options_db_emails_0_db_email', 'field_db_email' );
+[ [ 'db_email' => 'desk@example.test' ] ] === Field::get( 'db_emails', 'option' ) || $fail( 'A database repeater returns its rows, not the stored row count.' );
+update_option( '_options_db_note', 'field_db_note' );
+'' === Field::get( 'db_note', 'option' ) || $fail( 'A field of a disabled database group still resolves, as in ACF.' );
+FieldGroups::add( [ 'key' => 'group_db_old', 'title' => 'Code wins', 'fields' => [ [ 'key' => 'field_code_only', 'name' => 'code_only' ] ] ] );
+'Code wins' === ( FieldGroups::get_group( 'group_db_old' )['title'] ?? '' ) || $fail( 'A code-registered group overrides the database group with the same key.' );
+
+// Field lists follow get_field_objects(): the reference must resolve to a field of that same name.
+update_option( 'options_alias', 'x' );
+update_option( '_options_alias', 'field_db_note' );
+$listed = array_keys( (array) Field::all( 'option' ) );
+in_array( 'db_emails', $listed, true ) && ! in_array( 'alias', $listed, true ) && ! in_array( 'db_emails_0_db_email', $listed, true ) || $fail( 'Field::all() lists referenced fields by name and leaves out sub-field and mismatched references.' );
+null === Field::get( '', 'option' ) || $fail( 'An empty selector returns null, as get_field() does.' );
+
+// Names resolve to sub fields too (as ACF's field store does), after top-level fields.
+FieldGroups::add( [ 'key' => 'group_loops', 'title' => 'Loops', 'fields' => [ [ 'key' => 'field_loops', 'name' => 'loops', 'type' => 'group', 'sub_fields' => [ [ 'key' => 'field_loop_author', 'name' => 'loop_author', 'type' => 'text' ] ] ] ] ] );
+'field_loop_author' === ( FieldGroups::get_field( 'loop_author' )['key'] ?? '' ) || $fail( 'A sub field resolves by name.' );
+update_option( 'options_loop_author', 'Jane' );
+update_option( '_options_loop_author', 'loop_author' );
+'Jane' === Field::get( 'loop_author', 'option' ) || $fail( 'A reference that names a field resolves, as acf_get_meta_field() does.' );
 
 echo "PASS: native Fields resolve, derive keys and return values as ACF does.\n";
