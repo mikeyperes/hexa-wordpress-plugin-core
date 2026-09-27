@@ -128,9 +128,9 @@ final class FieldGroups {
         if ( null === self::$database ) {
             self::$database = array_map( [ self::class, 'normalize' ], Database::groups() );
         }
-        // ACF lists a code group in place of a database group with the same key, but
-        // still finds that database group's fields by key.
-        return $including_overridden ? self::$database : array_diff_key( self::$database, self::$groups );
+        // ACF lists a code group in place of a database group with the same key and never
+        // lists a trashed group, but still finds the fields of both.
+        return $including_overridden ? self::$database : array_filter( array_diff_key( self::$database, self::$groups ), static fn( array $group ): bool => empty( $group['trashed'] ) );
     }
 
     /** @return array<int,array<string,mixed>> Native groups only. */
