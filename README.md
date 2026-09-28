@@ -105,6 +105,8 @@ Version 3.0.0 establishes the coordinated major release for the expanded Core da
 
 Version 3.2.1 renames the DirectorySearch URL-owner parameter from `dir` to `hds` (the old name is still read), because common web firewalls such as ModSecurity/Imunify360 reject any request carrying `dir=`, which broke live search and pagination.
 
+Version 3.4.12 adds `PluginBridge`: once any Hexa plugin that bundles Core is on a site, an administrator Application Password can install or update other allowed plugins from their GitHub release zips over REST (`hexa-plugin-core/v1/plugins/github`), without wp-admin.
+
 Version 3.4.11 makes the migration tool emit `hexa_fields_on()` for every ACF hook registration, since a registration inside a function can still run while plugins load, before Core's classes are autoloadable. Runtime code is unchanged from 3.4.10.
 
 Version 3.4.10 fires ACF's `include_fields` registration moment natively (just before `init`, as ACF does), so groups registered with `Hooks::on( 'include_fields', ... )` or `hexa_fields_on()` exist without ACF.
