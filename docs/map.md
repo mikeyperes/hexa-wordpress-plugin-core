@@ -18,7 +18,7 @@ interaction. The host owns only the profile values and each item's card data.
 - Free and keyless: MapLibre GL JS draws open vector tiles (OpenFreeMap by
   default). Addresses are placed by the US Census geocoder and/or
   OpenStreetMap Nominatim.
-- Light: about 15 KB of inline CSS and JavaScript (under 6 KB gzipped). The map
+- Light: about 15 KB of inline CSS and JavaScript (under 6.5 KB gzipped). The map
   library and tiles load only when the component nears the viewport.
 - Brandable without code: every color is a `--hmap-*` CSS custom property,
   and the script recolors the base map's land, water, parks, buildings, roads,
