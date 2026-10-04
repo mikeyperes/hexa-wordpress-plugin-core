@@ -92,7 +92,10 @@ class FakeElement {
     }
 
     contains(element) {
-        return element === this || (this.ownerRoot && element && element.ownerRoot === this.ownerRoot);
+        return element === this || (element && (
+            element.ownerRoot === this
+            || (this.ownerRoot && element.ownerRoot === this.ownerRoot)
+        ));
     }
 
     focus() {
@@ -353,11 +356,22 @@ const flush = () => new Promise((resolve) => setImmediate(resolve));
     window.elementorFrontend.hooks.doAction('search:results-displayed', 'registered-e');
     assert.equal(keyboard.input.getAttribute('aria-expanded'), 'true', 'Elementor\'s native reopen lifecycle expands a visible registered result list');
 
+    documentListeners.get('click')({ target: keyboard.input });
+    assert.equal(keyboard.input.getAttribute('aria-expanded'), 'true', 'a click inside the registered widget preserves its open combobox state');
+
+    keyboard.resultsContainer.classList.add('hidden');
+    documentListeners.get('click')({ target: new FakeElement() });
+    assert.equal(keyboard.input.getAttribute('aria-expanded'), 'false', 'a click outside the registered widget follows Elementor\'s native close state');
+
+    unregistered.input.setAttribute('aria-expanded', 'true');
+    documentListeners.get('click')({ target: new FakeElement() });
+    assert.equal(unregistered.input.getAttribute('aria-expanded'), 'true', 'the outside-click state synchronization leaves unregistered widgets untouched');
+
     unregistered.input.setAttribute('aria-expanded', 'false');
     window.elementorFrontend.hooks.doAction('search:results-displayed', 'unregistered');
     assert.equal(unregistered.input.getAttribute('aria-expanded'), 'false', 'the native lifecycle hook leaves unregistered search widgets untouched');
 
-    console.log('PASS: Elementor client adapter preserves scoped request, layout, keyboard, and native reopen states.');
+    console.log('PASS: Elementor client adapter preserves scoped request, layout, keyboard, and native close/reopen states.');
 })().catch((error) => {
     console.error(error);
     process.exit(1);

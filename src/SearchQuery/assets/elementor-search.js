@@ -210,6 +210,23 @@
         input.setAttribute('aria-expanded', 'false');
     }, true);
 
+    document.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        document.querySelectorAll('[data-hexa-search-query-id]').forEach((root) => {
+            if (root.contains(event.target)) {
+                return;
+            }
+
+            const input = root.querySelector('.e-search-input');
+            if (input) {
+                input.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+
     window.fetch = (input, options = {}) => {
         const url = requestUrl(input);
         const data = url.includes(endpoint) ? requestData(options) : null;
