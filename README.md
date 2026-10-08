@@ -4,6 +4,37 @@ Shared WordPress plugin core for Hexa plugins.
 
 This package exists to stop each plugin from re-implementing the same admin tabs, activity logs, updater wiring, shortcode lists, and setup patterns differently.
 
+> Feature base for HWS Skills. Read before building on this plugin; use or
+> extend these features instead of rebuilding them.
+
+**Purpose:** shared library bundled inside every Hexa plugin (admin tabs, updater, fields, search, public components). It has no admin screen of its own; the bundling plugin exposes its features.
+
+## Features
+
+### Site search display
+- **Use:** `[hexa_search style="icon-reveal|overlay|pill|underline|command" placeholder="" accent="" radius=""]` (registered by HWS Base Tools).
+- **Code:** `src/SearchDisplay/SearchDisplayRenderer.php`, results tuning in `src/SearchQuery/`, live results in `src/SmartSearch/`.
+- **Extend:** `hexa_plugin_core_search_query_should_handle`, `hexa_plugin_core_smart_search_results`.
+
+### Calendar
+- **Does:** a month calendar of posts from a registered profile.
+- **Use:** register a profile with `CalendarRegistry::register( 'id', [...] )` in a plugin, then `[hexa_calendar id="id"]`. Public data at REST `hexa-plugin-core/v1/calendar/...`.
+- **Code:** `src/Calendar/`
+
+### Directory search
+- **Does:** a searchable, filterable directory from a registered profile.
+- **Use:** `DirectorySearchRegistry::register( 'id', [...] )`, then `[hexa_directory id="id"]`.
+- **Code:** `src/DirectorySearch/`
+
+### Map
+- **Does:** a map of addresses geocoded without an API key.
+- **Use:** `MapRegistry::register( 'id', [...] )`, then `[hexa_map id="id"]`.
+- **Code:** `src/Map/`
+
+### Shared building blocks
+- Content types (`src/ContentTypes/`), ACF field factory (`src/AcfFieldFactory/`), front-end form fields (`src/FrontendForms/`), FAQ sets (`src/FaqSets/`), typography and brand colours (`src/Typography/`, `src/BrandColors/`).
+- **Extend:** `hexa_fields/load_field_groups`, `hexa_plugin_core_recommended_plugin_definitions`, `hexa_plugin_core/plugin_bridge_owners`.
+
 ## Package Identity
 
 These names are fixed. Do not rename them in plugin implementations.
