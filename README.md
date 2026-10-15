@@ -153,6 +153,8 @@ Version 3.15.1 adds the lightbox `media` layout: a large dialog with the origina
 
 Version 3.21.0 makes site search public-only for everyone: `SearchQueryEngine::restrict_to_public()` limits every prepared search (the regular search page and the Elementor Search widget) to published, non-password items, drops anything marked noindex (Rank Math `rank_math_robots`, Yoast `_yoast_wpseo_meta-robots-noindex`) and never returns the site's front or posts page. Before, the regular search page used WordPress's default, which shows private posts to signed-in editors.
 
+Version 3.22.0 makes Core the one schema library: `SchemaNodes` builders, `SchemaSources` WordPress adapters, `SchemaIds`, the shared per-page graph `SchemaPage` (one `hexa-schema` block merged from every plugin) and `RankMathSchemaControl`. Plugins decide where they output; Core builds, merges and prints.
+
 Version 3.21.1 fixes a search hang from 3.21.0: the noindex rule was a `meta_query` that WordPress compiles into unkeyed postmeta joins, and Elementor searches applied it twice, so one query multiplied every post by its meta rows and ran for minutes. `restrict_to_public()` now only marks the query (`hexa_search_public_only`), and the search SQL excludes noindex with one indexed postmeta subquery (`SearchQueryEngine::noindex_exclusion_sql()`). Calling it twice changes nothing.
 
 Version 3.20.0 adds the Elementor search results page mode (`hexa-search-page-results` and `hexa-search-default` CSS classes): results in the page, the spinner over the current results while loading, default content hidden while results show.
@@ -279,7 +281,9 @@ Version 3.0.1 preserves explicit `@id` and `@type` relationship summaries when s
 
 ## Schema Tools
 
-The 1.x line includes reusable schema graph helpers and a generic schema dashboard renderer. Host plugins can build their own schema objects, normalize independently detectable graph nodes with `SchemaGraph::standalone_nodes()`, opt into explicit `@id` and `@type` relationship summaries for linked top-level nodes, expose debug JSON, show ideal-vs-actual graph examples, provide validator links, render collapsed shortcode cards, and pass plugin-specific schema action panels through HexaWP Core instead of duplicating dashboard UI.
+Every Hexa plugin builds schema with `SchemaNodes` and `SchemaSources` and adds it to `SchemaPage`, which merges all plugins' nodes into one `hexa-schema` block per page. Each plugin decides which pages it covers. HWS Base Tools owns the Rank Math schema switch (`RankMathSchemaControl`). See `docs/schema-tools.md`.
+
+The schema tools also include reusable schema graph helpers and a generic schema dashboard renderer. Host plugins can build their own schema objects, normalize independently detectable graph nodes with `SchemaGraph::standalone_nodes()`, opt into explicit `@id` and `@type` relationship summaries for linked top-level nodes, expose debug JSON, show ideal-vs-actual graph examples, provide validator links, render collapsed shortcode cards, and pass plugin-specific schema action panels through HexaWP Core instead of duplicating dashboard UI.
 
 Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`, or plugin-specific namespaces inside this package. Consuming plugins may have their own namespaces, but this shared package always stays under `Hexa\PluginCore`.
 
@@ -316,7 +320,7 @@ Do not create `HWS\BaseTools\PluginCore`, `HexaWordPressPluginCore`, `Hexa\Core`
 - `ShortcodeRegistry`: shortcode definition registry, dashboard display renderer, examples, live output, and test runner contracts.
 - `SiteStructure`: reusable critical page blueprint management, assigned page storage, WordPress navigation menu creation, custom menu-item creation, add-all-assigned-pages actions, menu structure attachment, and page-to-menu-item tools.
 - `SchemaDetection`: reusable JSON-LD URL scans, source detection, semantic property validation, duplicate schema conflict checks, FAQ validation, and dark admin report rendering.
-- `SchemaTools`: shared schema-document normalization, typed HTTP(S) URL guards, fail-closed URL-property sanitization, graph-node deduplication, JSON-LD rendering, and one-shot WordPress output injection while host plugins retain their schema builders.
+- `SchemaTools`: the one schema library for every Hexa plugin: generic node builders (`SchemaNodes`), WordPress data adapters (`SchemaSources`), shared `@id` conventions (`SchemaIds`), one merged graph per page (`SchemaPage`), the Rank Math schema switch (`RankMathSchemaControl`), URL guards, normalization and JSON-LD rendering. Host plugins decide which pages they cover; Core builds and prints.
 - `SearchDisplay`: five reusable front-end WordPress search-form templates with shared markup, CSS, and accessible interactions.
 - `SearchQuery`: bounded native WordPress result matching for all/any/exact terms, whole/prefix/contains word modes, optional natural time windows from shared QueryFilter rules, selected post types and sources, one-query-only SQL hooks, guarded JetEngine and native Elementor Search bridging, and a safe public Elementor text index.
 - `SmartSearch`: smart search/X-Search AJAX endpoint and reusable typeahead renderer.
