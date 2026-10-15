@@ -32,7 +32,7 @@ This package exists to stop each plugin from re-implementing the same admin tabs
 - **Code:** `src/SearchQuery/SearchIndex.php`
 
 ### Directory search
-- **Does:** a searchable, filterable directory from a registered profile.
+- **Does:** a searchable, filterable directory from a registered profile. More results load on scroll with a crawlable Load more link by default (`'load_mode' => 'infinite'`); `'load_mode' => 'numbered'` gives page links.
 - **Use:** `DirectorySearchRegistry::register( 'id', [...] )`, then `[hexa_directory id="id"]`.
 - **Code:** `src/DirectorySearch/`
 
