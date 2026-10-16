@@ -51,6 +51,7 @@ final class DirectorySearchRenderer {
         $html = '<div class="hds ' . esc_attr( $profile['class'] ) . '" id="' . esc_attr( $dom_id ) . '"'
             . PublicComponent::live_attributes( 'hds', 'directory/' . $profile['id'], $profile['public'] )
             . ' data-hds-base="' . esc_attr( $base ) . '"'
+            . ( 'infinite' === $profile['load_mode'] ? ' data-hds-auto="1"' : '' )
             . ' data-hds-min="' . esc_attr( (string) $profile['min_chars'] ) . '"'
             . ' data-hds-min-label="' . esc_attr( sprintf( $labels['min_chars'], $profile['min_chars'] ) ) . '"'
             . ' data-hds-error-label="' . esc_attr( $labels['error'] ) . '">';
@@ -167,7 +168,7 @@ final class DirectorySearchRenderer {
 
         $current = (int) $result['page'];
         $pages   = (int) $result['pages'];
-        if ( 'infinite' === $profile['load_mode'] ) {
+        if ( 'numbered' !== $profile['load_mode'] ) {
             return $current < $pages
                 ? '<nav class="hds-more" aria-label="' . esc_attr( $profile['labels']['pagination'] ) . '">' . $this->page_link( $profile, $request, $base, $current + 1, $profile['labels']['load_more'], 'next', true ) . '</nav>'
                 : '';
@@ -266,7 +267,7 @@ if(input){input.addEventListener('input',function(){window.clearTimeout(timer);t
 form.addEventListener('change',function(e){if(e.target&&e.target!==input){window.clearTimeout(timer);run(1,false,false);}});
 results.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a[data-hds-page]'):null;if(!a)return;e.preventDefault();var n=parseInt(a.getAttribute('data-hds-page'),10)||1;if(a.hasAttribute('data-hds-append')){run(n,null,false,true);}else{run(n,true,false);}});
 var io=window.IntersectionObserver?new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting&&!root.getAttribute('aria-busy')){io.unobserve(en.target);en.target.click();}});},{rootMargin:'400px 0px'}):null;
-function watch(){if(!io)return;io.disconnect();var m=results.querySelector('a[data-hds-append]');if(m)io.observe(m);}
+function watch(){if(!io||root.getAttribute('data-hds-auto')!=='1')return;io.disconnect();var m=results.querySelector('a[data-hds-append]');if(m)io.observe(m);}
 watch();
 window.addEventListener('popstate',function(){var sp=new URLSearchParams(location.search),owner=sp.get('hds')||sp.get('dir');if(owner&&('hds-'+owner)!==root.id){sp=new URLSearchParams();}Array.prototype.forEach.call(form.elements,function(el){if(!el.name||el.type==='hidden')return;if(el.type==='checkbox'){el.checked=sp.get(el.name)===el.value;}else if(el.tagName==='SELECT'||el.type==='search'||el.type==='text'||el.type==='date'){el.value=sp.get(el.name)||el.getAttribute('data-hds-default')||'';}});lastKey=null;run(parseInt(sp.get('dpage')||'1',10),null,false);});
 }
