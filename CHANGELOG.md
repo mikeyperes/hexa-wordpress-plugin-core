@@ -2,6 +2,8 @@
 
 Release notes moved from the README (3.31.1). Newest first; each Core release adds its line here.
 
+Version 3.32.0 adds `ShortcodeRegistry\ShortcodeBreakdown` (one shortcode with copy button, aliases, every attribute with default, explanation and choices, and examples) and `WpAdminComponents\CodeDisplay` (colour-coded HTML/CSS/PHP/JS code block with copy button), for every plugin's settings screens.
+
 Version 3.31.1 rewrites the README's `## Features` into one entry per capability (Does / Use / Extend / Code) for every `src/` folder, removes the narrative sections those entries replace, and moves the release notes here. No code changes.
 
 Version 3.31.0 adds `WpAdminComponents\SourceBanner` (read-only "Original content at <owner>. Click here to edit." notice for data owned by another plugin) and makes the native field engine (no ACF) honor a field's `wrapper` `class` and `id` and add `data-name`, as ACF does, so hosts can show or hide fields by class.

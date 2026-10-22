@@ -72,6 +72,18 @@
 - **Use:** `ShortcodeRegistry::add()` with `ShortcodeDefinition`; `( new ShortcodeDisplayRenderer() )->render( $rows, [ title, description ] )` or `ShortcodeCatalogRenderer`; `ShortcodeTester::prepare()` returns `ShortcodeTestResult`.
 - **Code:** `src/ShortcodeRegistry/` (docs: `docs/shortcodes.md`)
 
+### Shortcode breakdown
+- **Does:** explains one shortcode on a settings screen: the shortcode with a copy button, what it does, any alias tags, every attribute with its default, a plain explanation and its choices, and copyable examples.
+- **Use:** `ShortcodeBreakdown::render( [ tag, title, description, aliases, attributes => [ name => [ default, description, options ] ], examples => [ [ label, shortcode ] ] ] )`.
+- **Style:** root class `hpc-shortcode-breakdown`; code is colour-coded by `CodeDisplay`.
+- **Code:** `src/ShortcodeRegistry/ShortcodeBreakdown.php`
+
+### Code display
+- **Does:** a colour-coded, read-only code block (HTML, CSS, PHP, JavaScript, JSON or shortcodes) with a title bar, language badge and copy button; highlighting runs on the server, every character escaped, no script library.
+- **Use:** `CodeDisplay::render( $code, [ language, title, max_height ] )`; `CodeDisplay::highlight( $code, $language )` for inline markup.
+- **Style:** root class `hpc-code-display`, token classes `hcd-*`.
+- **Code:** `src/WpAdminComponents/CodeDisplay.php`
+
 ### Snippet registry
 - **Does:** switchable code snippets with tests, related snippets and shortcodes, and the shared snippets table.
 - **Use:** `SnippetRegistry::add()`/`add_many()`, `is_enabled()`, `set_enabled()`, `test()`; `SnippetsTableRenderer::render()`; `SnippetAjaxController::register()` for the toggle and test buttons.
