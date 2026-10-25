@@ -127,6 +127,18 @@ final class PageStructureManager {
         return 0;
     }
 
+    /** A page whose slug matches a pattern with * wildcards ("*mission-statement"), published first (0 when none). */
+    public function find_page_by_pattern( string $pattern ): int {
+        global $wpdb;
+        if ( '' === $pattern || ! isset( $wpdb ) ) {
+            return 0;
+        }
+        $like = str_replace( "\0", '%', $wpdb->esc_like( str_replace( '*', "\0", $pattern ) ) );
+        $sql  = $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'page' AND post_name LIKE %s AND post_status IN ('publish','draft','private','pending') ORDER BY post_status = 'publish' DESC, ID ASC LIMIT 1", $like ); // phpcs:ignore WordPress.DB.PreparedSQL
+
+        return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    }
+
     /**
      * Facts a page needs that are empty: the page definition's
      * `required_facts` (list of alternatives, any one is enough, keyed by
@@ -161,7 +173,8 @@ final class PageStructureManager {
 
     /**
      * Makes one page exist and sit under its parent: the assigned page, else
-     * a page already at its slug at any level (linked, content untouched),
+     * a page already at its slug or one of its `slugs` alternatives (`*` is a
+     * wildcard) at any level (linked, content untouched),
      * else a new page from its template. Then it is moved under its parent
      * (`parent` page key, from any plugin), with the old address redirecting.
      *
@@ -177,7 +190,12 @@ final class PageStructureManager {
         $created    = false;
         $page_id    = $this->resolve_page_id( $page_key );
         if ( $page_id <= 0 ) {
-            $page_id = $this->find_page_by_slug( (string) ( $def['slug'] ?? $page_key ) );
+            foreach ( array_merge( [ (string) ( $def['slug'] ?? $page_key ) ], array_map( 'strval', (array) ( $def['slugs'] ?? [] ) ) ) as $slug ) {
+                $page_id = false !== strpos( $slug, '*' ) ? $this->find_page_by_pattern( $slug ) : $this->find_page_by_slug( $slug );
+                if ( $page_id > 0 ) {
+                    break;
+                }
+            }
             if ( $page_id > 0 ) {
                 $this->save_assignment( $page_key, $page_id );
             }

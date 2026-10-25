@@ -153,3 +153,4 @@ The host must register and pass a `page_workspace` AJAX action. Clicking a row's
 - `ensure_pages()` sets every page up, parents first; `ensure_page( $key )` sets up one: the linked page, else a page already at its slug at any level (linked, content untouched), else a new page from its template. The page is then moved under its parent.
 - `PageStructureManager::place_under_parent( $page_id, $parent_id )` moves a page and records its old path; `PageRedirects` sends that path to the new address with a 301.
 - `required_facts` on a definition (`label => [ fact, alternative ]`) with the `facts_getter` config callable powers `missing_facts( $key )`.
+- `slugs` on a definition lists other addresses the page may already have (`*` is a wildcard, `find_page_by_pattern()`); `ensure_page()` links the first match before creating anything (3.36.0).

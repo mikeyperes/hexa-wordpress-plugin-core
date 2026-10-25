@@ -6,7 +6,8 @@ namespace Hexa\PluginCore\SiteStructure;
  * Keeps a page's old address working after the page moves under a parent or
  * changes its slug: the old path is stored on the page and a 301 sends
  * visitors and search engines to the current address. One hook per site,
- * whichever plugin's page manager loads first.
+ * registered by the first page manager built or by a host plugin calling
+ * PageRedirects::register() on every request (needed on the front end).
  */
 final class PageRedirects {
     public const META_KEY = '_hexa_old_paths';
@@ -18,7 +19,8 @@ final class PageRedirects {
             return;
         }
         self::$registered = true;
-        add_action( 'template_redirect', [ self::class, 'redirect' ], 1 );
+        // On `wp`, before redirect plugins that send every 404 to the home page (Rank Math runs at 10).
+        add_action( 'wp', [ self::class, 'redirect' ], 1 );
     }
 
     /** The page's address path without slashes at either end ("about/team"). */
