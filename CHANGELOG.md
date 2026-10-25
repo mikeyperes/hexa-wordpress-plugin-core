@@ -2,6 +2,8 @@
 
 Release notes moved from the README (3.31.1). Newest first; each Core release adds its line here.
 
+Version 3.35.0 lets one plugin's page sit under another plugin's page. `PageStructureManager::resolve_page_id()` finds a page key in any loaded page manager, then through the `hexa_site_structure_page_id` filter; `ensure_page()` / `ensure_pages()` set pages up in one call (the linked page, else a page already at its slug at any level, else a new page) and move each under its `parent`; `place_under_parent()` moves a page and `PageRedirects` 301s its old address; `missing_facts()` checks a page definition's `required_facts` through the `facts_getter` config.
+
 Version 3.34.2 makes the Core fleet sync check the site after copying: it loads the home page once and restores every copied Core package when the site returns a server error or WordPress's critical-error page (`hexa_core_sync_site_broken`). An older host plugin that still used code a newer Core removed (Base Tools 13.13.2 with Core 3.34.1, missing `DirectorySearch`) took americasgoneviral.com down with HTTP 500 on 2026-10-23.
 
 Version 3.34.1 draws `ScopedCssOverride`'s HTML structure and CSS examples and `SchemaScanRenderer`'s "View full JSON" in `CodeDisplay`.
