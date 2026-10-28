@@ -68,8 +68,8 @@ when the component has one item and grey out at either end.
 
 A step keeps the shown item on screen until the next one is fetched and its
 photo decoded, then fades through to it; a phone sheet eases to its new
-height. The items either side load in the background, so a step is usually
-instant. Visitors who ask for reduced motion get the swap without fades.
+height. As an item opens, the items either side (and the one two ahead in the
+stepping direction) load in the background, so a step is usually instant. Visitors who ask for reduced motion get the swap without fades.
 
 The open item is kept in the address as `?hlb=<post ID>`: opening adds it as
 one history entry, each step replaces it, and closing (or Back) removes it. A

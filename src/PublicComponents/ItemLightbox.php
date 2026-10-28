@@ -228,7 +228,7 @@ function shut(){var was=pushed;pushed=false;dlg.close();finish();if(!was&&window
 function items(){var seen={},out=[];if(!group||!group.isConnected)return out;Array.prototype.forEach.call(group.querySelectorAll('a[data-hlb]'),function(x){var u=x.getAttribute('data-hlb');if(!u||seen[u]||!allowed(u))return;seen[u]=1;out.push(x);});return out;}
 function sync(){var list=items(),i=-1;list.forEach(function(x,k){if(x.getAttribute('data-hlb')===current)i=k;});nav.hidden=list.length<2||i<0;prev.disabled=i<=0;next.disabled=i<0||i>=list.length-1;
 count.textContent=i<0?'':String(lab.count||'%1$s of %2$s').replace('%1$s',i+1).replace('%2$s',list.length);return {list:list,i:i};}
-function step(d){if(!dlg||!dlg.open)return;var s=sync(),t=s.i<0?null:s.list[s.i+d];if(t)show(t,'step');}
+function step(d){if(!dlg||!dlg.open)return;var s=sync(),t=s.i<0?null:s.list[s.i+d];if(t)show(t,'step',d);}
 // Each item is fetched once and its first image decoded before it shows, so the photo never pops in.
 function warm(d){var t=document.createElement('template');t.innerHTML=d.html||'';var im=t.content.querySelector('img');if(!im||!window.Promise)return d;
 var x=new Image(),s=im.getAttribute('sizes'),ss=im.getAttribute('srcset');if(s)x.sizes=s;if(ss)x.srcset=ss;x.src=im.getAttribute('src')||'';
@@ -237,8 +237,8 @@ return Promise.race([p.catch(function(){}),new Promise(function(r){setTimeout(r,
 function load(a){var url=a.getAttribute('data-hlb'),root=a.closest('[data-hlb-labels]')||a,nonce=root.getAttribute('data-hlb-nonce'),h={'Accept':'application/json'};if(nonce)h['X-WP-Nonce']=nonce;
 if(!cache[url]){cache[url]=fetch(url,{credentials:nonce?'same-origin':'omit',headers:h}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(warm);
 cache[url].catch(function(){delete cache[url];});}return cache[url];}
-// The items either side load in the background, so a step is usually instant.
-function around(){var s=sync();if(s.i<0)return;[s.i-1,s.i+1].forEach(function(k){if(s.list[k])load(s.list[k]).catch(function(){});});}
+// The items either side (two ahead in the stepping direction) load in the background as an item opens, so a step is usually instant.
+function around(d){var s=sync();if(s.i<0)return;[s.i-1,s.i+1,s.i+(d<0?-2:2)].forEach(function(k){if(s.list[k])load(s.list[k]).catch(function(){});});}
 // A step fades the old item out and the ready one in; a sheet that changes height eases to it.
 function put(html,soft,n){var old=dlg.offsetHeight;function done(){if(n!==seq||!dlg.open)return;body.innerHTML=html;body.scrollTop=0;body.classList.remove('is-busy','is-out','is-loading');if(soft&&!still)ease(old);}
 if(soft&&!still){body.classList.add('is-out');setTimeout(done,150);}else{done();}}
@@ -246,7 +246,7 @@ function ease(old){dlg.classList.remove('is-sizing');dlg.style.height='';var h=d
 dlg.style.height=old+'px';void dlg.offsetHeight;dlg.classList.add('is-sizing');dlg.style.height=h+'px';setTimeout(function(){dlg.classList.remove('is-sizing');dlg.style.height='';},260);}
 function hide(){if(!dlg||!dlg.open)return;if(pushed&&history.state&&history.state.hlb){pushed=false;history.back();return;}shut();}
 window.addEventListener('popstate',function(){if(dlg&&dlg.open)shut();});
-function show(a,how){if(!dlg)build();
+function show(a,how,d){if(!dlg)build();
 var root=a.closest('[data-hlb-labels]')||a,l={},cs=getComputedStyle(root),url=a.getAttribute('data-hlb'),href=a.href,n=++seq;
 try{l=JSON.parse(root.getAttribute('data-hlb-labels')||'{}')||{};}catch(e){}
 var soft=dlg.open;lab=l;group=root.hasAttribute('data-hlb-labels')?root:null;current=url;prev.textContent=l.prev||'Previous';next.textContent=l.next||'Next';sync();
@@ -257,8 +257,9 @@ if(soft){body.classList.add('is-busy');}else{body.classList.add('is-loading');bo
 trigger=a;var id=itemId(url);
 if(!dlg.open){dlg.showModal();document.documentElement.classList.add('hlb-lock');if(window.history&&history.pushState){if(how==='load')history.replaceState(history.state,'',address(''));history.pushState({hlb:1},'',address(id));pushed=true;}}
 else if(window.history&&history.replaceState){history.replaceState(pushed?{hlb:1}:history.state,'',address(id));}
-load(a).then(function(d){if(n!==seq||!dlg.open)return;if(d.title)dlg.setAttribute('aria-label',d.title);put(d.html||'',soft,n);var f=how==='step'&&document.activeElement;if(!f||!dlg.contains(f)||f.disabled)close.focus();around();})
-.catch(function(){if(n!==seq||!dlg.open)return;put('<p class="hlb-msg">'+esc(l.error||'')+' <a href="'+esc(href)+'">'+esc(l.open||href)+'</a></p>',soft,n);});}
+load(a).then(function(p){if(n!==seq||!dlg.open)return;if(p.title)dlg.setAttribute('aria-label',p.title);put(p.html||'',soft,n);var f=how==='step'&&document.activeElement;if(!f||!dlg.contains(f)||f.disabled)close.focus();})
+.catch(function(){if(n!==seq||!dlg.open)return;put('<p class="hlb-msg">'+esc(l.error||'')+' <a href="'+esc(href)+'">'+esc(l.open||href)+'</a></p>',soft,n);});
+around(d);}
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a[data-hlb]'):null;
 if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||!window.fetch||!window.HTMLDialogElement||!allowed(a.getAttribute('data-hlb')))return;
 e.preventDefault();show(a,'open');});

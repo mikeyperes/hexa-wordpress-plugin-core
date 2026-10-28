@@ -210,7 +210,7 @@ $expect( str_contains( ItemLightbox::css(), '@media(max-width:600px)' ), 'Phones
 $expect( '%1$s of %2$s' === ItemLink::LABELS['lightbox_count'] && str_contains( $js, 'hlb-count' ) && str_contains( $js, "prev.textContent=l.prev||'Previous'" ), 'Previous and Next are worded buttons with the item\'s place between them.' );
 $expect( ! preg_match( '/[\x{2190}-\x{21FF}]/u', $js ), 'The dialog draws no arrow icons.' );
 $expect( str_contains( $js, 'x.decode' ) && str_contains( $js, "body.classList.add('is-busy')" ) && str_contains( $js, "body.classList.add('is-out')" ), 'A step keeps the shown item until the next photo is decoded, then fades through.' );
-$expect( str_contains( $js, 'function around(){' ) && str_contains( $js, 'around();' ), 'The items either side load in the background.' );
+$expect( str_contains( $js, 'function around(d){' ) && str_contains( $js, 'around(d);' ), 'The items either side load in the background.' );
 $expect( str_contains( ItemLightbox::css(), 'prefers-reduced-motion:reduce' ), 'Reduced motion swaps without fades.' );
 
 echo "PASS: item link contract ({$assertions} assertions).\n";
