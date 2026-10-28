@@ -3,6 +3,8 @@
 Release notes moved from the README (3.31.1). Newest first; each Core release adds its line here.
 
 
+Version 3.46.2: on phones the media-layout lightbox shows its Previous, count, Next and close controls as a solid strip above the photo instead of floating over it, so the count stays readable and the photo uncovered.
+
 Version 3.46.1: the item lightbox starts loading the neighbouring items as soon as an item opens (the one before, the one after, and two ahead in the stepping direction), instead of after the shown item finishes, so steps through a slow server stay instant.
 
 Version 3.46.0: stepping in the item lightbox is smooth: the shown item stays until the next is fetched and its photo decoded, then fades through to it (a phone sheet eases to its new height), and the items either side load in the background. Previous and Next are worded buttons with the item's place between them (new label `lightbox_count`, `%1$s of %2$s`), replacing the bare arrow icons.
