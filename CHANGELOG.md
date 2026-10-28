@@ -3,6 +3,8 @@
 Release notes moved from the README (3.31.1). Newest first; each Core release adds its line here.
 
 
+Version 3.45.0: the item lightbox gets Previous and Next buttons (and left and right arrow keys) that step through the component's other dialog links in page order, and keeps the open item in the address as `?hlb=<post ID>`, updated on every step, so a reload or shared link reopens it; closing removes it. New labels `lightbox_prev` and `lightbox_next`. The calendar ignores `hlb` when it compares addresses.
+
 Version 3.44.2: the live search box shows its result count as `<b class="hls-count">` inside the status line (so a design can style the number), keeps that markup when results update, and after each update also refreshes every element marked `data-hls-sync` (for example a heading that names the search term) from the new page.
 
 Version 3.44.1: `apply_template()` takes a page built with Elementor out of builder mode (removes `_elementor_edit_mode`), so the default text shows instead of the old Elementor design; the Elementor design stays saved on the page.
