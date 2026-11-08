@@ -100,6 +100,9 @@ final class UserProfileBridge {
             'meta'              => $meta,
             'legacy_avatar_url' => $legacy_url,
             'avatar_provider'   => self::provider(),
+            'provider' => self::provider(),
+            'frontend_avatar_url' => (string) get_avatar_url( $user_id, [ 'size' => 96 ] ),
+            'admin_avatar_url' => (string) get_avatar_url( $user_id, [ 'size' => 250 ] ),
         ];
     }
 
@@ -169,6 +172,9 @@ final class UserProfileBridge {
         $other = array_values( array_intersect( array_diff( self::AVATAR_PLUGINS, [ 'simple-local-avatars/simple-local-avatars.php' ] ), $active ) );
         if ( [] !== $other || ! in_array( 'simple-local-avatars/simple-local-avatars.php', $active, true ) ) {
             return new \WP_Error( 'hexa_avatar_provider_unsupported', 'Simple Local Avatars is the only supported photo plugin. Active competing avatar plugins: ' . ( [] !== $other ? implode( ', ', $other ) : 'none; Simple Local Avatars is inactive' ), [ 'status' => 422 ] );
+        }
+        if ( $media_id > 0 && ! wp_attachment_is_image( $media_id ) ) {
+            return new \WP_Error( 'hexa_user_profile_avatar_invalid', 'Avatar attachment must be an image.', [ 'status' => 422 ] );
         }
         // Remove outgoing provider derivatives before replacing metadata, including rollback.
         $previous = get_user_meta( $user_id, 'simple_local_avatar', true );
