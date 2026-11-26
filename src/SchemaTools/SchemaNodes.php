@@ -14,6 +14,138 @@ use Hexa\PluginCore\DataNormalization\ValueNormalizer;
  * the nodes to SchemaPage for the pages they cover.
  */
 final class SchemaNodes {
+    /** Current Schema.org LocalBusiness descendants, excluding superseded and pending types. */
+    private const LOCAL_BUSINESS_TYPES = [
+        'LocalBusiness',
+        'AccountingService',
+        'AdultEntertainment',
+        'AmusementPark',
+        'AnimalShelter',
+        'ArchiveOrganization',
+        'ArtGallery',
+        'Attorney',
+        'AutoBodyShop',
+        'AutoDealer',
+        'AutoPartsStore',
+        'AutoRental',
+        'AutoRepair',
+        'AutoWash',
+        'AutomatedTeller',
+        'AutomotiveBusiness',
+        'Bakery',
+        'BankOrCreditUnion',
+        'BarOrPub',
+        'BeautySalon',
+        'BedAndBreakfast',
+        'BikeStore',
+        'BookStore',
+        'BowlingAlley',
+        'Brewery',
+        'CafeOrCoffeeShop',
+        'Campground',
+        'Casino',
+        'ChildCare',
+        'ClothingStore',
+        'ComedyClub',
+        'ComputerStore',
+        'ConvenienceStore',
+        'CovidTestingFacility',
+        'DaySpa',
+        'Dentist',
+        'DepartmentStore',
+        'Distillery',
+        'DryCleaningOrLaundry',
+        'Electrician',
+        'ElectronicsStore',
+        'EmergencyService',
+        'EmploymentAgency',
+        'EntertainmentBusiness',
+        'ExerciseGym',
+        'FastFoodRestaurant',
+        'FinancialService',
+        'FireStation',
+        'Florist',
+        'FoodEstablishment',
+        'FurnitureStore',
+        'GardenStore',
+        'GasStation',
+        'GeneralContractor',
+        'GolfCourse',
+        'GovernmentOffice',
+        'GroceryStore',
+        'HVACBusiness',
+        'HairSalon',
+        'HardwareStore',
+        'HealthAndBeautyBusiness',
+        'HealthClub',
+        'HobbyShop',
+        'HomeAndConstructionBusiness',
+        'HomeGoodsStore',
+        'Hospital',
+        'Hostel',
+        'Hotel',
+        'HousePainter',
+        'IceCreamShop',
+        'IndividualPhysician',
+        'InsuranceAgency',
+        'InternetCafe',
+        'JewelryStore',
+        'LegalService',
+        'Library',
+        'LiquorStore',
+        'Locksmith',
+        'LodgingBusiness',
+        'MensClothingStore',
+        'MobilePhoneStore',
+        'Motel',
+        'MotorcycleDealer',
+        'MotorcycleRepair',
+        'MovieRentalStore',
+        'MovieTheater',
+        'MovingCompany',
+        'MusicStore',
+        'NailSalon',
+        'NightClub',
+        'Notary',
+        'OfficeEquipmentStore',
+        'OutletStore',
+        'PawnShop',
+        'PetStore',
+        'Pharmacy',
+        'Physician',
+        'PhysiciansOffice',
+        'Plumber',
+        'PoliceStation',
+        'PostOffice',
+        'ProfessionalService',
+        'PublicSwimmingPool',
+        'RadioStation',
+        'RealEstateAgent',
+        'RecyclingCenter',
+        'Resort',
+        'Restaurant',
+        'RoofingContractor',
+        'SelfStorage',
+        'ShoeStore',
+        'ShoppingCenter',
+        'SkiResort',
+        'SportingGoodsStore',
+        'SportsActivityLocation',
+        'SportsClub',
+        'StadiumOrArena',
+        'Store',
+        'TattooParlor',
+        'TelevisionStation',
+        'TennisComplex',
+        'TireShop',
+        'TouristInformationCenter',
+        'ToyStore',
+        'TravelAgency',
+        'VacationRental',
+        'WholesaleStore',
+        'Winery',
+    ];
+
     public const ORGANIZATION_TYPES = [
         'Organization',
         'Corporation',
@@ -112,6 +244,108 @@ final class SchemaNodes {
         $properties['sameAs'] = self::same_as( $properties['sameAs'] ?? [] );
         $properties['email']  = ValueNormalizer::email( $properties['email'] ?? '' );
         return self::finish( [ '@type' => $type ] + $properties );
+    }
+
+
+    /** Returns supported LocalBusiness types with editor-friendly labels. */
+    public static function local_business_types(): array {
+        $choices = [];
+        foreach ( self::LOCAL_BUSINESS_TYPES as $type ) {
+            $choices[ $type ] = preg_replace( '/(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/', ' ', $type );
+        }
+        return $choices;
+    }
+
+    /** Returns the Schema.org days available to weekly opening-hours fields. */
+    public static function opening_hour_days(): array {
+        return [
+            'Monday' => 'Monday', 'Tuesday' => 'Tuesday', 'Wednesday' => 'Wednesday',
+            'Thursday' => 'Thursday', 'Friday' => 'Friday', 'Saturday' => 'Saturday',
+            'Sunday' => 'Sunday', 'PublicHolidays' => 'Public holidays',
+        ];
+    }
+
+    /** Builds weekly opening hours from selected days and local 24-hour times. */
+    public static function opening_hours_specification( array $row ): array {
+        $days = [];
+        $allowed = self::opening_hour_days();
+        foreach ( (array) ( $row['dayOfWeek'] ?? $row['days'] ?? [] ) as $day ) {
+            $key = preg_replace( '#^https?://schema\.org/#', '', ValueNormalizer::text( $day ) );
+            if ( isset( $allowed[ $key ] ) ) {
+                $days[ $key ] = 'https://schema.org/' . $key;
+            }
+        }
+        $opens = self::opening_time( $row['opens'] ?? '' );
+        $closes = self::opening_time( $row['closes'] ?? '' );
+        if ( [] === $days || '' === $opens || '' === $closes ) {
+            return [];
+        }
+        return self::node( 'OpeningHoursSpecification', [
+            'dayOfWeek' => array_values( $days ),
+            'opens' => $opens,
+            'closes' => $closes,
+        ] );
+    }
+
+    /** Normalizes the hour and minute format without changing overnight hours. */
+    private static function opening_time( mixed $time ): string {
+        $value = ValueNormalizer::text( $time );
+        if ( ! preg_match( '/\A(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?\z/', $value ) ) {
+            return '';
+        }
+        return 5 === strlen( $value ) ? $value . ':00' : $value;
+    }
+
+    /** Builds a business location using the shared organization, address and area builders. */
+    public static function local_business( array $record, string $type = 'LocalBusiness' ): array {
+        $name = ValueNormalizer::text( $record['name'] ?? '' );
+        if ( '' === $name ) {
+            return [];
+        }
+
+        $areas = [];
+        foreach ( (array) ( $record['areaServed'] ?? $record['areas_served'] ?? [] ) as $area ) {
+            $node = self::area( is_array( $area ) ? $area : [ 'name' => $area ] );
+            if ( [] !== $node ) {
+                $areas[ $node['@type'] . ':' . $node['name'] ] = $node;
+            }
+        }
+        $hours = [];
+        foreach ( ValueNormalizer::rows( $record['openingHoursSpecification'] ?? $record['hours'] ?? [] ) as $row ) {
+            $specification = self::opening_hours_specification( $row );
+            if ( [] !== $specification ) {
+                $hours[] = $specification;
+            }
+        }
+        $address = is_array( $record['address'] ?? null ) ? $record['address'] : $record;
+        $coordinates = is_array( $record['geo'] ?? null ) ? $record['geo'] : $record;
+        $node = self::organization( [
+            '@id' => ValueNormalizer::url( $record['@id'] ?? '' ),
+            'name' => $name,
+            'url' => ValueNormalizer::url( $record['url'] ?? '' ),
+            'telephone' => ValueNormalizer::text( $record['telephone'] ?? '' ),
+            'email' => $record['email'] ?? '',
+            'logo' => $record['logo'] ?? null,
+            'image' => $record['image'] ?? null,
+            'address' => self::postal_address( $address ),
+            'areaServed' => array_values( $areas ),
+            'geo' => self::business_coordinates( $coordinates ),
+            'priceRange' => ValueNormalizer::text( $record['priceRange'] ?? $record['price_range'] ?? '' ),
+            'openingHoursSpecification' => $hours,
+            'sameAs' => $record['sameAs'] ?? $record['same_as'] ?? [],
+        ], 'LocalBusiness' );
+        $node['@type'] = in_array( $type, self::LOCAL_BUSINESS_TYPES, true ) ? $type : 'LocalBusiness';
+        return $node;
+    }
+
+    /** Includes only complete coordinates within Earth's latitude and longitude ranges. */
+    private static function business_coordinates( array $row ): array {
+        $latitude = $row['latitude'] ?? null;
+        $longitude = $row['longitude'] ?? null;
+        if ( ! is_numeric( $latitude ) || ! is_numeric( $longitude ) || abs( (float) $latitude ) > 90 || abs( (float) $longitude ) > 180 ) {
+            return [];
+        }
+        return self::node( 'GeoCoordinates', [ 'latitude' => (float) $latitude, 'longitude' => (float) $longitude ] );
     }
 
     public static function person( array $properties ): array {

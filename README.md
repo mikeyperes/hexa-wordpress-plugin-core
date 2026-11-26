@@ -316,6 +316,11 @@
 - **Extend:** `hexa_plugin_core_schema_graph`.
 - **Code:** `src/SchemaTools/` (docs: `docs/schema-tools.md`, `docs/schema-standalone-nodes.md`)
 
+### Local Business schema
+- **Does:** Builds LocalBusiness and its supported Schema.org subtypes with contact details, images, city-only or street addresses, service areas, coordinates, price range, opening hours and profile links.
+- **Use:** Register `LocalBusinessStructure::definition( $records_for_page, $sample )` through `SchemaStructures`. It ships off, accepts a host's WordPress page-to-record mapping, and contributes to the shared `SchemaPage` output. `LocalBusinessFields` supplies the corresponding repeatable editor definitions and converts stored field values.
+- **Code:** `src/SchemaTools/LocalBusinessStructure.php`, `src/SchemaTools/SchemaNodes.php`, `src/FieldStructures/LocalBusinessFields.php`. See [Local Business structures](docs/schema-structures.md#local-business).
+
 ### Schema structures
 - **Does:** each plugin declares the schema structures it owns (which pages, which types, which modes); every structure ships on in its default mode, Core prints the enabled ones in the page's schema block, keeps each structure's mode, and gives every plugin the same Schema panel with live previews and validator links, plus `wp hexa schema`.
 - **Use:** `SchemaStructures::register( $owner, [ 'plugin' => ..., 'settings_url' => ..., 'structures' => [ [ 'id', 'label', 'where', 'modes', 'default', 'option', 'applies' => fn( SchemaContext $c ): bool, 'build' => fn( SchemaContext $c, string $mode ): array, 'sample' => fn(): ?SchemaContext ] ] ] )`; `SchemaStructuresPanel::render( $owner )` in the plugin's Schema tab; `SchemaStructures::mode()`, `set_mode()`, `nodes()`, `document()`, `preview()`; `SchemaContext::current()`, `for_post()`, `for_front_page()`, `for_archive()`. CLI: `wp hexa schema list|preview|set --owner --id [--mode]`.

@@ -1,3 +1,8 @@
+## 3.67.3 - 2026-11-26
+
+- Add default-off Local Business schema and reusable native fields, including LocalBusiness subtypes, optional price ranges and opening hours on mapped pages.
+- Let a Core relationship field explicitly include all page choices without changing the normal field limit.
+
 ## 3.67.2 - 2026-11-21
 
 - Restore the legacy WordPress REST field property for Core-managed groups with REST exposure enabled.

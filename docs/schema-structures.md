@@ -49,3 +49,13 @@ SchemaStructures::register( 'example-plugin', [
 Builders stay generic: they take plain values. `SchemaNodes::person_profile( $record )` builds a complete Person from one record (names, alternate names, honorifics, title, description, contact, gender, birth date and place, nationality as Country nodes, languages, education as `alumniOf` and `hasCredential`, occupations, awards, images, employers, `sameAs`, the Knowledge Graph ID as an `identifier`, `mainEntityOfPage`, and raw `properties` that override). Plugins read their own fields into that record.
 
 Test with `php tests/schema-structures.php` and `php tests/schema-person-profile.php`.
+
+## Local Business
+
+Build a default-off Local Business structure by adding `LocalBusinessStructure::definition( $records_for_page, $sample )` to an owner's `SchemaStructures::register()` call. Core passes the current WordPress page ID to the host callback. The callback returns the mapped business records, each with a stable site-wide `@id`, a `type` and business details. The optional sample supplies a mapped `SchemaContext` for the Core preview. Static front pages mapped to a business are also supported.
+
+Use `new Hexa\PluginCore\FieldStructures\LocalBusinessFields( $option_prefix )` to build the native Core field group. Pass the current Core mode to `group()` so the business fields appear when the owner enables the structure. Use `records()` for the editor, `validate()` after Core sanitization, `pages()` for mapping, and `schema_record()` to turn a stored row into shared builder input. The host owns storage and page assignments.
+
+Use `SchemaNodes::local_business( $record, $type )` to build the node directly. It recognizes LocalBusiness and the current published descendants from [Schema.org](https://schema.org/LocalBusiness). An unrecognized type uses LocalBusiness. An address can consist of a city without a street. Weekly opening hours accept `days` or `dayOfWeek`, `opens` and `closes` (24-hour time). The [OpeningHoursSpecification](https://schema.org/OpeningHoursSpecification) builder preserves overnight ranges and omits incomplete entries.
+
+Test the builder and fields with `php tests/schema-local-business.php`.

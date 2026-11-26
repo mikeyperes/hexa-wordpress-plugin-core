@@ -140,7 +140,9 @@ final class Renderer {
             case 'relationship':
                 $multiple = 'relationship' === $type || ! empty( $field['multiple'] );
                 $types = array_filter( (array) ( $field['post_type'] ?? [] ) );
-                $posts = get_posts( [ 'post_type' => $types ?: 'any', 'post_status' => [ 'publish', 'draft', 'pending', 'private', 'future' ], 'numberposts' => 300, 'orderby' => 'title', 'order' => 'ASC', 'suppress_filters' => false ] );
+                // Explicitly mapped records may need to select beyond the standard editor limit.
+                $limit = (int) ( $field['post_choice_limit'] ?? 300 );
+                $posts = get_posts( [ 'post_type' => $types ?: 'any', 'post_status' => [ 'publish', 'draft', 'pending', 'private', 'future' ], 'numberposts' => $limit, 'orderby' => 'title', 'order' => 'ASC', 'suppress_filters' => false ] );
                 $options = [];
                 foreach ( $posts as $post ) {
                     $options[ $post->ID ] = $post->post_title . ( 'publish' !== $post->post_status ? ' (' . $post->post_status . ')' : '' );

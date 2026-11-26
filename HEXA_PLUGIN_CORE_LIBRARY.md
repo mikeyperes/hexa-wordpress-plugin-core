@@ -979,9 +979,11 @@ Use `AcfFieldGroupRegistry` to register fields in Core and preserve their toggle
 
 Namespace: Hexa\PluginCore\SchemaTools
 
-Classes: SchemaNodes, SchemaSources, SchemaIds, SchemaPage, SchemaContext, SchemaStructures, SchemaStructuresPanel, SchemaStructuresModule, SchemaGraph, SchemaDocumentRenderer, SchemaInjector, SchemaDashboardRenderer.
+Classes: SchemaNodes, SchemaSources, SchemaIds, SchemaPage, SchemaContext, SchemaStructures, LocalBusinessStructure, SchemaStructuresPanel, SchemaStructuresModule, SchemaGraph, SchemaDocumentRenderer, SchemaInjector, SchemaDashboardRenderer.
 
 `SchemaStructures::register( $owner, $args )` declares a plugin's structures (pages, types, modes, builder, sample page); each ships in its default mode, prints through `SchemaPage`, and gets `SchemaStructuresPanel::render( $owner )` and `wp hexa schema`. Builders take a `SchemaContext`, so the same builder serves the live page, a preview and a test. `SchemaNodes::person_profile( $record )` builds a complete Person from a plain record; see `docs/schema-structures.md`.
+
+`LocalBusinessStructure::definition( $records_for_page, $sample )` provides a default-off structure for mapped public WordPress pages. `FieldStructures\\LocalBusinessFields` owns its field definitions and converts stored values, including attachments, into records for `SchemaNodes::local_business()`. `SchemaNodes::opening_hours_specification()` normalizes a weekly day and time row.
 
 `SchemaGraph::web_url()` rejects wrong-shaped field values and returns only HTTP(S) URLs. Hosts should continue to later field sources when it returns an empty string. `SchemaGraph::sanitize_urls()` is the final fail-closed guard for URL-range properties, while `SchemaGraph::validation_issues()` exposes semantic property paths for tests and reports. `SchemaGraph::standalone_nodes()` converts reference-only objects to identifier URL values while preserving detached typed summaries for author, publisher, copyright-holder, and image properties, allowing every top-level graph node to remain independently detectable. A host can include `@id` and `@type` in an overridden typed-summary property map when relationships must stay explicitly linked to those independent nodes without repeating their descriptive fields. Valid URL lists, `Role` values for `url`, and structured policy nodes are preserved.
 
