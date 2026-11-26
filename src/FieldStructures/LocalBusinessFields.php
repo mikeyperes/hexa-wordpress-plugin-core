@@ -3,6 +3,7 @@
 
 namespace Hexa\PluginCore\FieldStructures;
 
+use Hexa\PluginCore\DataNormalization\ValueNormalizer;
 use Hexa\PluginCore\SchemaTools\SchemaNodes;
 use Hexa\PluginCore\SchemaTools\SchemaSources;
 
@@ -121,7 +122,11 @@ final class LocalBusinessFields {
     /** Translates the nested hours rows into the shared builder's day and time keys. */
     private function hours( array $row ): array {
         $hours = [];
-        foreach ( (array) $this->value( $row, 'hours' ) as $entry ) {
+        // Summary: Read only opening-hours rows with structured field values.
+        // Issue: A missing optional control resolves to an empty string, which an array cast turns into a string row.
+        // Solution: Use the shared row normalizer so missing controls and malformed entries produce no hours.
+        // Test: tests/schema-local-business.php covers omitted and empty hours.
+        foreach ( ValueNormalizer::rows( $this->value( $row, 'hours' ) ) as $entry ) {
             $hours[] = [
                 'days' => (array) $this->value( $entry, 'days' ),
                 'opens' => $this->value( $entry, 'opens' ),

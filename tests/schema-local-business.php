@@ -56,4 +56,11 @@ $minimal = SchemaNodes::local_business( [ 'name' => 'Basic location', 'latitude'
 check_business( 'LocalBusiness' === $minimal['@type'] && ! isset( $minimal['geo'], $minimal['priceRange'], $minimal['openingHoursSpecification'] ), 'Invalid coordinates and unspecified optional values are omitted.' );
 check_business( 'Organization' === SchemaNodes::organization( [ 'name' => 'Existing consumer' ], 'Bakery' )['@type'], 'The existing organization contract remains unchanged.' );
 
+$without_hours = [ $fields->key( 'name' ) => 'No hours', $fields->key( 'type' ) => 'LocalBusiness' ];
+$fields->validate( $without_hours );
+check_business( [] === $fields->schema_record( $without_hours, 'https://example.test/#no-hours' )['hours'], 'Omitted hours produce no entries.' );
+$without_hours[ $fields->key( 'hours' ) ] = [];
+$fields->validate( $without_hours );
+check_business( [] === $fields->schema_record( $without_hours, 'https://example.test/#no-hours' )['hours'], 'Empty hours produce no entries.' );
+
 echo "PASS: Local Business field definitions and schema builders\n";

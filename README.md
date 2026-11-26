@@ -318,7 +318,7 @@
 
 ### Local Business schema
 - **Does:** Builds LocalBusiness and its supported Schema.org subtypes with contact details, images, city-only or street addresses, service areas, coordinates, price range, opening hours and profile links.
-- **Use:** Register `LocalBusinessStructure::definition( $records_for_page, $sample )` through `SchemaStructures`. It ships off, accepts a host's WordPress page-to-record mapping, and contributes to the shared `SchemaPage` output. `LocalBusinessFields` supplies the corresponding repeatable editor definitions and converts stored field values.
+- **Use:** Register `LocalBusinessStructure::definition( $records_for_page, $sample )` through `SchemaStructures`. It ships off, accepts a host's WordPress page-to-record mapping, and contributes to the shared `SchemaPage` output. `LocalBusinessFields` supplies the corresponding repeatable editor definitions and converts stored field values. Empty or missing hours are omitted.
 - **Code:** `src/SchemaTools/LocalBusinessStructure.php`, `src/SchemaTools/SchemaNodes.php`, `src/FieldStructures/LocalBusinessFields.php`. See [Local Business structures](docs/schema-structures.md#local-business).
 
 ### Schema structures

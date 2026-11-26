@@ -1,3 +1,7 @@
+## 3.67.4 - 2026-11-26
+
+- Accept business records with missing or empty optional opening hours.
+
 ## 3.67.3 - 2026-11-26
 
 - Add default-off Local Business schema and reusable native fields, including LocalBusiness subtypes, optional price ranges and opening hours on mapped pages.
